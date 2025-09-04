@@ -461,7 +461,7 @@ const App:React.FC = () => {
             <label className="flex items-center gap-1"><input type="checkbox" checked={wordDot} onChange={e=>setWordDot(e.target.checked)} /> dotted</label>
             <label className="col-span-2">Scale<select className="border ml-1" value={scale} onChange={e=>setScale(e.target.value)}>{Object.keys(SCALES).map(s=><option key={s} value={s}>{s}</option>)}<option value="Custom">Custom</option></select></label>
             {scale==='Custom' && <label className="col-span-2">Notes<input className="border ml-1" value={customScale} onChange={e=>setCustomScale(e.target.value)} placeholder="C,C#,D" /></label>}
-            <label className="col-span-2">Octave<input className="border ml-1 w-12" type="number" min={1} max={7} value={morseOct} onChange={e=>setMorseOct(parseInt(e.target.value))} /></label>
+            <label className="col-span-2">Octave<input className="border ml-1 w-12" type="number" min={4} max={7} value={morseOct} onChange={e=>setMorseOct(parseInt(e.target.value))} /></label>
           </div>
           <button className="border px-2 mt-2" onClick={addMorse}>Add Morse</button>
         </div>
