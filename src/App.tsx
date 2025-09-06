@@ -140,8 +140,12 @@ const App:React.FC = () => {
   // Key playback preview
   const audioCtxRef = useRef<AudioContext>();
   function playTone(midi:number,dur=0.3){
-    if(!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    if(!audioCtxRef.current){
+      const AC = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
+      audioCtxRef.current = new AC();
+    }
     const ctx = audioCtxRef.current;
+    if(ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type='sine';
@@ -427,7 +431,7 @@ const App:React.FC = () => {
       {/* Grid */}
       <div className="flex-1 overflow-hidden">
         <div ref={gridRef} className="overflow-y-scroll h-72 md:h-[520px] relative" onClick={onGridClick}>
-          <div ref={gridContentRef} className="relative" style={{width:gridWidth,height:gridHeight}}>
+          <div ref={gridContentRef} className="relative mx-auto" style={{width:gridWidth,height:gridHeight}}>
             {Array.from({length:KEYS.length}).map((_: unknown, i: number)=>(
               <div key={i} className="absolute top-0 bottom-0 border-l border-gray-400/20" style={{left:i*colWidth}} />
             ))}
@@ -482,19 +486,19 @@ const App:React.FC = () => {
           <div className="font-bold">Morse Mode</div>
           <textarea className="border p-1 mt-1 flex-1" value={morseText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>)=>setMorseText(e.target.value)} />
           <div className="grid grid-cols-2 gap-1 text-xs mt-1">
-            <label>Dot<select className="border" value={dotLen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDotLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1">Dot<select className="border" value={dotLen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDotLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
             <label className="flex items-center gap-1"><input type="checkbox" checked={dotDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setDotDot(!!e.target.checked)} /> dotted</label>
-            <label>Dash<select className="border" value={dashLen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDashLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1">Dash<select className="border" value={dashLen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDashLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
             <label className="flex items-center gap-1"><input type="checkbox" checked={dashDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setDashDot(!!e.target.checked)} /> dotted</label>
-            <label>Symbol gap<select className="border" value={symGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setSymGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1">Symbol gap<select className="border" value={symGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setSymGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
             <label className="flex items-center gap-1"><input type="checkbox" checked={symDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setSymDot(!!e.target.checked)} /> dotted</label>
-            <label>Letter gap<select className="border" value={letGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setLetGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1">Letter gap<select className="border" value={letGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setLetGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
             <label className="flex items-center gap-1"><input type="checkbox" checked={letDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setLetDot(!!e.target.checked)} /> dotted</label>
-            <label>Word gap<select className="border" value={wordGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setWordGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1">Word gap<select className="border" value={wordGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setWordGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
             <label className="flex items-center gap-1"><input type="checkbox" checked={wordDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setWordDot(!!e.target.checked)} /> dotted</label>
-            <label className="col-span-2">Scale<select className="border ml-1" value={scale} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setScale(e.target.value)}>{Object.keys(SCALES).map((s: string)=><option key={s} value={s}>{s}</option>)}<option value="Custom">Custom</option></select></label>
-            {scale==='Custom' && <label className="col-span-2">Notes<input className="border ml-1" value={customScale} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setCustomScale(e.target.value)} placeholder="C,C#,D" /></label>}
-            <label className="col-span-2">Octave<input className="border ml-1 w-12" type="number" min={4} max={7} value={morseOct} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setMorseOct(parseInt(e.target.value))} /></label>
+            <label className="col-span-2 flex items-center gap-1">Scale<select className="border" value={scale} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setScale(e.target.value)}>{Object.keys(SCALES).map((s: string)=><option key={s} value={s}>{s}</option>)}<option value="Custom">Custom</option></select></label>
+            {scale==='Custom' && <label className="col-span-2 flex items-center gap-1">Notes<input className="border" value={customScale} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setCustomScale(e.target.value)} placeholder="C,C#,D" /></label>}
+            <label className="col-span-2 flex items-center gap-1">Octave<input className="border w-12" type="number" min={4} max={7} value={morseOct} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setMorseOct(parseInt(e.target.value))} /></label>
           </div>
           <button className="border px-2 mt-2" onClick={addMorse}>Add Morse</button>
         </div>
