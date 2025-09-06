@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Den, NoteEvent, KeyDef, KEYS, TICKS_PER_QUARTER, pxPerTick, DUR_STATES, ticksFromDen } from "./music";
+
+import { Den, NoteEvent, KeyDef, KEYS, TICKS_PER_QUARTER, DUR_STATES, ticksFromDen } from "./music";
 import { playTone, getAudioContext } from "./sound";
 import TopControls from "./components/TopControls";
-import Keyboard from "./components/Keyboard";
+import PianoRoll from "./components/PianoRoll";
 import InsertControls from "./components/InsertControls";
 import RTTTLControls from "./components/RTTTLControls";
 import MorseControls from "./components/MorseControls";
@@ -25,25 +26,13 @@ const App:React.FC = () => {
   const [cursorTick,setCursorTick] = useState(0);
   const cursorRef = useRef(0);
   useEffect(()=>{ cursorRef.current = cursorTick; },[cursorTick]);
+  const updateCursor = (tick:number) => { cursorRef.current = tick; setCursorTick(tick); };
   const [nextLen,setNextLen] = useState<Den>(4);
   const [nextDot,setNextDot] = useState(false);
   const [keyboardMode,setKeyboardMode] = useState(false);
   const [playing,setPlaying] = useState(false);
   const [playTick,setPlayTick] = useState(0);
   const [loop,setLoop] = useState(false);
-
-  const gridRef = useRef<HTMLDivElement>(null);
-  const gridContentRef = useRef<HTMLDivElement>(null);
-  const [colWidth,setColWidth] = useState(20);
-
-  useEffect(()=>{
-    const ro = new ResizeObserver((entries: ResizeObserverEntry[])=>{
-      const w = entries[0].contentRect.width;
-      setColWidth(Math.floor(w/48));
-    });
-    if(gridRef.current) ro.observe(gridRef.current);
-    return ()=>ro.disconnect();
-  },[]);
 
   // Derived
   const noteWithTiming = notes.reduce<{ev:NoteEvent;startTick:number;durTicks:number}[]>((arr: {ev:NoteEvent;startTick:number;durTicks:number}[], ev: NoteEvent)=>{
@@ -54,18 +43,6 @@ const App:React.FC = () => {
   },[]);
   const totalTicks = noteWithTiming.reduce((s: number, n: {ev:NoteEvent;startTick:number;durTicks:number})=>s+n.durTicks,0);
   const tickSec = 60 / bpm / TICKS_PER_QUARTER;
-  const gridWidth = KEYS.length*colWidth;
-  const gridHeight = Math.max(240,totalTicks*pxPerTick+40);
-
-  // Scroll
-  useEffect(()=>{
-    const t = playing? playTick : cursorTick;
-    const cont = gridRef.current; const contentH = gridHeight;
-    if(cont){
-      const target = contentH - t*pxPerTick - cont.clientHeight/2;
-      cont.scrollTop = Math.max(0,Math.min(target,contentH));
-    }
-  },[playTick,cursorTick,playing,gridHeight]);
 
 
   // Insert helper
@@ -236,15 +213,6 @@ const App:React.FC = () => {
     startPlayback(cursorTick);
   }
 
-  // Grid click
-  function onGridClick(e:React.MouseEvent){
-    const rect = gridContentRef.current!.getBoundingClientRect();
-    const y = rect.bottom - e.clientY;
-    const tick = Math.max(0,Math.round(y/pxPerTick));
-    cursorRef.current = tick;
-    setCursorTick(tick);
-  }
-
   // Dev self-test
   useEffect(()=>{
     console.assert(DUR_STATES.length===12,'duration states length');
@@ -279,30 +247,20 @@ const App:React.FC = () => {
           togglePlay={togglePlay}
         />
 
-      {/* Grid */}
-      <div className="flex-1 overflow-hidden">
-        <div ref={gridRef} className="overflow-y-scroll h-72 md:h-[520px] relative" onClick={onGridClick}>
-          <div ref={gridContentRef} className="relative mx-auto" style={{width:gridWidth,height:gridHeight}}>
-            {Array.from({length:KEYS.length}).map((_: unknown, i: number)=>(
-              <div key={i} className="absolute top-0 bottom-0 border-l border-gray-400/20" style={{left:i*colWidth}} />
-            ))}
-            {Array.from({length:Math.floor(totalTicks/TICKS_PER_QUARTER)+1}).map((_: unknown, i: number)=>(
-              <div key={i} className="absolute left-0 right-0 border-b border-gray-400/20" style={{bottom:i*TICKS_PER_QUARTER*pxPerTick}} />
-            ))}
-            {noteWithTiming.map((n: {ev:NoteEvent;startTick:number;durTicks:number})=> n.ev.isRest ? (
-              <div key={n.ev.id} onClick={(e: React.MouseEvent<HTMLDivElement>)=>{e.stopPropagation();toggleSelect(n.ev.id);}} className={`absolute left-0 w-full ${selected.has(n.ev.id)?'bg-gray-500/50':'bg-gray-400/30'} text-center italic`} style={{height:n.durTicks*pxPerTick,bottom:n.startTick*pxPerTick}}>
-                pause
-              </div>
-            ):(
-              <div key={n.ev.id} onClick={(e: React.MouseEvent<HTMLDivElement>)=>{e.stopPropagation();toggleSelect(n.ev.id);}} className={`absolute rounded ${selected.has(n.ev.id)?'bg-blue-400':'bg-blue-600'}`} style={{height:n.durTicks*pxPerTick,width:colWidth-2,left:n.ev.keyIndex!*colWidth+1,bottom:n.startTick*pxPerTick}} />
-            ))}
-            <div className="absolute left-0 right-0 h-0.5 bg-red-500" style={{bottom:(playing?playTick:cursorTick)*pxPerTick}} />
-          </div>
-        </div>
-      </div>
+      {/* Piano roll */}
+      <PianoRoll
+        keys={KEYS}
+        noteWithTiming={noteWithTiming}
+        totalTicks={totalTicks}
+        selected={selected}
+        toggleSelect={toggleSelect}
+        cursorTick={cursorTick}
+        setCursorTick={updateCursor}
+        playing={playing}
+        playTick={playTick}
+        onKeyPress={onKeyPress}
+      />
 
-      {/* Keyboard */}
-        <Keyboard keys={KEYS} colWidth={colWidth} onKeyPress={onKeyPress} />
       {/* Under keyboard toolbar */}
       <InsertControls
         nextLen={nextLen}
