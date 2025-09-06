@@ -23,13 +23,16 @@ interface Props {
   setLoop: (v: boolean) => void;
   playing: boolean;
   togglePlay: () => void;
+  goToStart: () => void;
+  goToEnd: () => void;
 }
 
 const TopControls: React.FC<Props> = ({
   name, setName, bpm, setBpm, defDen, setDefDen,
   notesLength, totalTicks, lengthSec, selectedSize,
   copySel, cutSel, pasteClip, delSel, clipboardLength,
-  dark, setDark, loop, setLoop, playing, togglePlay
+  dark, setDark, loop, setLoop, playing, togglePlay,
+  goToStart, goToEnd
 }) => (
   <div className="flex gap-4 p-2 items-center flex-wrap text-xs">
     <label className="flex items-center gap-1">Name
@@ -59,8 +62,38 @@ const TopControls: React.FC<Props> = ({
     </div>
     <div className="flex gap-2 items-center ml-auto">
       <button className="border px-2" onClick={()=>setDark(!dark)}>{dark?'Light':'Dark'}</button>
-      <button className={`border px-2 ${loop?'bg-blue-500 text-white':''}`} onClick={()=>setLoop(!loop)}>{loop?'Looping':'Loop'}</button>
-      <button className="border px-2" onClick={togglePlay}>{playing?'Stop':'Play'}</button>
+      <button
+        className="border px-2"
+        onClick={goToStart}
+        aria-label="Go to start"
+        title="Go to start"
+      >
+        ⏮
+      </button>
+      <button
+        className="border px-2"
+        onClick={goToEnd}
+        aria-label="Go to end"
+        title="Go to end"
+      >
+        ⏭
+      </button>
+      <button
+        className={`border px-2 ${loop?'bg-blue-500 text-white':''}`}
+        onClick={()=>setLoop(!loop)}
+        aria-label="Toggle loop"
+        title="Toggle loop"
+      >
+        🔁
+      </button>
+      <button
+        className="border px-2"
+        onClick={togglePlay}
+        aria-label={playing ? 'Pause' : 'Play'}
+        title={playing ? 'Pause' : 'Play'}
+      >
+        {playing?'⏸':'▶️'}
+      </button>
       <span className="text-[10px]">Shift+Enter to Play/Stop</span>
     </div>
   </div>
