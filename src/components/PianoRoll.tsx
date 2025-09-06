@@ -67,18 +67,17 @@ const PianoRoll: React.FC<Props> = ({
   }
 
   return (
-    <>
-      <div className="flex-1 overflow-hidden">
+    <div className="flex flex-col">
+      <div
+        ref={gridRef}
+        className="overflow-y-scroll h-72 md:h-[520px] relative"
+        onClick={onGridClick}
+      >
         <div
-          ref={gridRef}
-          className="overflow-y-scroll h-72 md:h-[520px] relative"
-          onClick={onGridClick}
+          ref={gridContentRef}
+          className="relative mx-auto"
+          style={{ width: gridWidth, height: gridHeight }}
         >
-          <div
-            ref={gridContentRef}
-            className="relative mx-auto"
-            style={{ width: gridWidth, height: gridHeight }}
-          >
             {Array.from({ length: keys.length }).map((_, i) => (
               <div
                 key={i}
@@ -142,9 +141,10 @@ const PianoRoll: React.FC<Props> = ({
             />
           </div>
         </div>
+      <div className="mx-auto" style={{ width: gridWidth }}>
+        <Keyboard keys={keys} colWidth={colWidth} onKeyPress={onKeyPress} />
       </div>
-      <Keyboard keys={keys} colWidth={colWidth} onKeyPress={onKeyPress} />
-    </>
+    </div>
   );
 };
 

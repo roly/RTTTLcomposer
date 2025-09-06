@@ -16,17 +16,17 @@ export function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
-export function playTone(midi: number, dur = 0.3) {
+export function playTone(midi: number, dur = 0.15) {
   const ctx = getAudioContext();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-  osc.type = 'sine';
+  osc.type = 'square';
   osc.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
   osc.connect(gain).connect(ctx.destination);
   const now = ctx.currentTime;
   osc.start(now);
-  gain.gain.setValueAtTime(0.001, now);
-  gain.gain.linearRampToValueAtTime(0.3, now + 0.01);
-  gain.gain.linearRampToValueAtTime(0.001, now + dur);
-  osc.stop(now + dur + 0.05);
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.setValueAtTime(0.2, now + dur);
+  gain.gain.linearRampToValueAtTime(0.0001, now + dur + 0.01);
+  osc.stop(now + dur + 0.02);
 }
