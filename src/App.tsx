@@ -285,7 +285,10 @@ const App:React.FC = () => {
     timeoutsRef.current = [];
   }
   function startPlayback(startTick:number){
-    if(!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    if(!audioCtxRef.current){
+      const AC = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
+      audioCtxRef.current = new AC();
+    }
     if(audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
     clearTimers();
     setPlaying(true);
