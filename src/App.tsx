@@ -84,6 +84,7 @@ const App:React.FC = () => {
   const [keyboardMode,setKeyboardMode] = useState(false);
   const [playing,setPlaying] = useState(false);
   const [playTick,setPlayTick] = useState(0);
+  const [loop,setLoop] = useState(false);
   const [rtttlText,setRtttlText] = useState('');
   const [morseText,setMorseText] = useState('');
   const [dotLen,setDotLen] = useState<Den>(8);
@@ -274,19 +275,21 @@ const App:React.FC = () => {
 
   // Playback
   const timeoutsRef = useRef<number[]>([]);
-  function togglePlay(){
-    if(playing){
-      const timeouts = timeoutsRef.current ?? (timeoutsRef.current = []);
-      timeouts.forEach((t: number)=>clearTimeout(t));
-      timeoutsRef.current = [];
-      setPlaying(false);
-      cursorRef.current = playTick;
-      setCursorTick(playTick);
-      return;
-    }
-    setPlaying(true); setPlayTick(cursorTick);
+  function clearTimers(){
+    const timeouts = timeoutsRef.current ?? (timeoutsRef.current = []);
+    timeouts.forEach((t:number)=>clearTimeout(t));
+    timeoutsRef.current = [];
+  }
+  function startPlayback(startTick:number){
+    if(!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    if(audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
+    clearTimers();
+    setPlaying(true);
+    cursorRef.current = startTick;
+    setCursorTick(startTick);
+    setPlayTick(startTick);
     noteWithTiming.forEach((n: {ev:NoteEvent;startTick:number;durTicks:number})=>{
-      const start = (n.startTick-cursorTick)*tickSec*1000;
+      const start = (n.startTick-startTick)*tickSec*1000;
       if(start>=0){
         const id = window.setTimeout(()=>{
           if(!n.ev.isRest){ playTone(KEYS[n.ev.keyIndex!].midi,n.durTicks*tickSec); }
@@ -296,10 +299,29 @@ const App:React.FC = () => {
         timeouts.push(id);
       }
     });
-    const end = (totalTicks-cursorTick)*tickSec*1000;
-    const endId = window.setTimeout(()=>{ setPlaying(false); cursorRef.current = totalTicks; setCursorTick(totalTicks); setPlayTick(totalTicks); },end);
+    const end = (totalTicks-startTick)*tickSec*1000;
+    const endId = window.setTimeout(()=>{
+      if(loop){
+        startPlayback(0);
+      } else {
+        setPlaying(false);
+        cursorRef.current = totalTicks;
+        setCursorTick(totalTicks);
+        setPlayTick(totalTicks);
+      }
+    },end);
     const timeouts = timeoutsRef.current ?? (timeoutsRef.current = []);
     timeouts.push(endId);
+  }
+  function togglePlay(){
+    if(playing){
+      clearTimers();
+      setPlaying(false);
+      cursorRef.current = playTick;
+      setCursorTick(playTick);
+      return;
+    }
+    startPlayback(cursorTick);
   }
 
   // Grid click
@@ -403,6 +425,7 @@ const App:React.FC = () => {
         </div>
         <div className="flex flex-col gap-1 ml-auto">
           <button className="border px-2" onClick={()=>setDark(!dark)}>{dark?'Light':'Dark'}</button>
+          <button className={`border px-2 ${loop?'bg-blue-500 text-white':''}`} onClick={()=>setLoop(!loop)}>{loop?'Looping':'Loop'}</button>
           <button className="border px-2" onClick={togglePlay}>{playing?'Stop':'Play'}</button>
         </div>
       </div>
@@ -430,12 +453,28 @@ const App:React.FC = () => {
       </div>
 
       {/* Keyboard */}
-      <div className="flex relative select-none">
-        {KEYS.map(k=> (
-          <div key={k.index} onClick={()=>onKeyPress(k)} className={`${k.isBlack?'bg-black text-white w-6 h-24 -ml-3 z-10':'bg-white border w-10 h-24 relative'} flex items-end justify-center cursor-pointer`}>
-            {!k.isBlack && <span className="text-xs text-gray-800">{k.label}</span>}
+      <div className="relative select-none" style={{width:gridWidth,height:96}}>
+        {KEYS.filter(k=>!k.isBlack).map(k=>(
+          <div
+            key={k.index}
+            onClick={()=>onKeyPress(k)}
+            className="absolute bg-white border flex items-end justify-center cursor-pointer"
+            style={{left:k.index*colWidth,width:colWidth,height:'100%'}}
+          >
+            <span className="text-xs text-gray-800">{k.label}</span>
           </div>
         ))}
+        {KEYS.filter(k=>k.isBlack).map(k=>{
+          const bw = colWidth*0.7;
+          return (
+            <div
+              key={k.index}
+              onClick={()=>onKeyPress(k)}
+              className="absolute bg-black text-white rounded-b cursor-pointer"
+              style={{left:k.index*colWidth-bw/2,width:bw,height:'60%'}}
+            />
+          );
+        })}
       </div>
       {/* Under keyboard toolbar */}
       <div className="flex gap-2 p-2 items-center text-xs border-b">
