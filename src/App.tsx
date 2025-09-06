@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+
 import { Den, NoteEvent, KeyDef, KEYS, TICKS_PER_QUARTER, DUR_STATES, ticksFromDen } from "./music";
 import { playTone, getAudioContext } from "./sound";
 import TopControls from "./components/TopControls";
@@ -259,6 +260,7 @@ const App:React.FC = () => {
         playTick={playTick}
         onKeyPress={onKeyPress}
       />
+
       {/* Under keyboard toolbar */}
       <InsertControls
         nextLen={nextLen}
