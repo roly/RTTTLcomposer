@@ -7,6 +7,7 @@ import PianoRoll from "./components/PianoRoll";
 import InsertControls from "./components/InsertControls";
 import RTTTLControls from "./components/RTTTLControls";
 import MorseControls from "./components/MorseControls";
+import { parseRTTTL, generateRTTTL } from "./rtttl";
 
 
 const App:React.FC = () => {
@@ -33,6 +34,8 @@ const App:React.FC = () => {
   const [playing,setPlaying] = useState(false);
   const [playTick,setPlayTick] = useState(0);
   const [loop,setLoop] = useState(false);
+  const [rtttl,setRtttl] = useState('');
+  const skipParseRef = useRef(false);
 
   // Derived
   const noteWithTiming = notes.reduce<{ev:NoteEvent;startTick:number;durTicks:number}[]>((arr: {ev:NoteEvent;startTick:number;durTicks:number}[], ev: NoteEvent)=>{
@@ -44,6 +47,23 @@ const App:React.FC = () => {
   const totalTicks = noteWithTiming.reduce((s: number, n: {ev:NoteEvent;startTick:number;durTicks:number})=>s+n.durTicks,0);
   const tickSec = 60 / bpm / TICKS_PER_QUARTER;
 
+  useEffect(()=>{
+    skipParseRef.current = true;
+    setRtttl(generateRTTTL(name,defDen,bpm,notes));
+  },[name,defDen,bpm,notes]);
+
+  useEffect(()=>{
+    if(skipParseRef.current){ skipParseRef.current=false; return; }
+    try{
+      const song = parseRTTTL(rtttl, defDen, bpm);
+      clearTimers();
+      setPlaying(false);
+      setName(song.name); setDefDen(song.defDen); setBpm(song.bpm); setNotes(song.notes);
+      cursorRef.current = 0; setCursorTick(0); setPlayTick(0);
+    }catch(err){
+      // ignore parse errors
+    }
+  },[rtttl]);
 
   // Insert helper
   function insertEvent(ev:NoteEvent){
@@ -212,6 +232,21 @@ const App:React.FC = () => {
     }
     startPlayback(cursorTick);
   }
+  function goToStart(){
+    clearTimers();
+    setPlaying(false);
+    cursorRef.current = 0;
+    setCursorTick(0);
+    setPlayTick(0);
+  }
+
+  function goToEnd(){
+    clearTimers();
+    setPlaying(false);
+    cursorRef.current = totalTicks;
+    setCursorTick(totalTicks);
+    setPlayTick(totalTicks);
+  }
 
   // Dev self-test
   useEffect(()=>{
@@ -245,6 +280,8 @@ const App:React.FC = () => {
           setLoop={setLoop}
           playing={playing}
           togglePlay={togglePlay}
+          goToStart={goToStart}
+          goToEnd={goToEnd}
         />
 
       {/* Piano roll */}
@@ -276,11 +313,8 @@ const App:React.FC = () => {
       {/* Bottom panels */}
       <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
         <RTTTLControls
-          name={name}
-          defDen={defDen}
-          bpm={bpm}
-          notes={notes}
-          onImport={(song)=>{ setName(song.name); setDefDen(song.defDen); setBpm(song.bpm); setNotes(song.notes); cursorRef.current = 0; setCursorTick(0); setPlayTick(0); }}
+          rtttl={rtttl}
+          setRtttl={setRtttl}
         />
         <MorseControls
           onAdd={(events)=>events.forEach(insertEvent)}
