@@ -65,7 +65,6 @@ const App:React.FC = () => {
     }
   },[rtttl]);
 
-
   // Insert helper
   function insertEvent(ev:NoteEvent){
     const dur = ticksFromDen(ev.durationDen,ev.dotted);
@@ -248,6 +247,7 @@ const App:React.FC = () => {
     setCursorTick(totalTicks);
     setPlayTick(totalTicks);
   }
+
   // Dev self-test
   useEffect(()=>{
     console.assert(DUR_STATES.length===12,'duration states length');
