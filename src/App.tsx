@@ -398,41 +398,35 @@ const App:React.FC = () => {
   },[]);
 
   return (
-    <div className="h-full flex flex-col text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen flex flex-col text-xs md:text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Top controls */}
-      <div className="flex gap-2 p-2 items-start">
-        <div className="flex flex-col">
-          <label>Name<input className="border p-1" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setName(e.target.value)} /></label>
-        </div>
-        <div className="flex flex-col">
-          <label>Tempo<select className="border p-1" value={bpm} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setBpm(parseInt(e.target.value))}>{TEMPOS.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
-        </div>
-        <div className="flex flex-col">
-          <label>Default d<select className="border p-1" value={defDen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDefDen(parseInt(e.target.value) as Den)}>{DEFAULT_DENS.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
-        </div>
-        <div className="flex-1 h-24 border p-2 flex flex-col text-xs">
+      <div className="flex gap-4 p-2 items-center flex-wrap text-xs">
+        <label className="flex items-center gap-1">Name<input className="border p-1" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setName(e.target.value)} /></label>
+        <label className="flex items-center gap-1">Tempo<select className="border p-1" value={bpm} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setBpm(parseInt(e.target.value))}>{TEMPOS.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
+        <label className="flex items-center gap-1">Default d<select className="border p-1" value={defDen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDefDen(parseInt(e.target.value) as Den)}>{DEFAULT_DENS.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
+        <div className="flex-1 flex gap-1 flex-wrap items-center">
           <div>Events: {notes.length}</div>
           <div>Total ticks: {totalTicks}</div>
           <div>Length: {(totalTicks*tickSec).toFixed(2)}s</div>
           <div>Selected: {selected.size}</div>
-          <div className="mt-1 flex gap-1">
+          <div className="flex gap-1 ml-2">
             <button className="border px-1" onClick={copySel}>Copy</button>
             <button className="border px-1" onClick={cutSel}>Cut</button>
             <button className="border px-1" disabled={!clipboard.length} onClick={pasteClip}>Paste</button>
             <button className="border px-1" onClick={delSel}>Delete</button>
           </div>
-          <div className="text-[10px] mt-auto">Shift+Enter to Play/Stop</div>
         </div>
-        <div className="flex flex-col gap-1 ml-auto">
+        <div className="flex gap-2 items-center ml-auto">
           <button className="border px-2" onClick={()=>setDark(!dark)}>{dark?'Light':'Dark'}</button>
           <button className={`border px-2 ${loop?'bg-blue-500 text-white':''}`} onClick={()=>setLoop(!loop)}>{loop?'Looping':'Loop'}</button>
           <button className="border px-2" onClick={togglePlay}>{playing?'Stop':'Play'}</button>
+          <span className="text-[10px]">Shift+Enter to Play/Stop</span>
         </div>
       </div>
 
       {/* Grid */}
       <div className="flex-1 overflow-hidden">
-        <div ref={gridRef} className="overflow-y-scroll h-[520px] relative" onClick={onGridClick}>
+        <div ref={gridRef} className="overflow-y-scroll h-72 md:h-[520px] relative" onClick={onGridClick}>
           <div ref={gridContentRef} className="relative" style={{width:gridWidth,height:gridHeight}}>
             {Array.from({length:KEYS.length}).map((_: unknown, i: number)=>(
               <div key={i} className="absolute top-0 bottom-0 border-l border-gray-400/20" style={{left:i*colWidth}} />
@@ -454,39 +448,28 @@ const App:React.FC = () => {
 
       {/* Keyboard */}
       <div className="relative select-none" style={{width:gridWidth,height:96}}>
-        {KEYS.filter(k=>!k.isBlack).map(k=>(
+        {KEYS.map(k=>(
           <div
             key={k.index}
             onClick={()=>onKeyPress(k)}
-            className="absolute bg-white border flex items-end justify-center cursor-pointer"
+            className={`absolute flex items-end justify-center cursor-pointer ${k.isBlack?'bg-black text-white':'bg-white border'}`}
             style={{left:k.index*colWidth,width:colWidth,height:'100%'}}
           >
-            <span className="text-xs text-gray-800">{k.label}</span>
+            {!k.isBlack && <span className="text-xs text-gray-800">{k.label}</span>}
           </div>
         ))}
-        {KEYS.filter(k=>k.isBlack).map(k=>{
-          const bw = colWidth*0.7;
-          return (
-            <div
-              key={k.index}
-              onClick={()=>onKeyPress(k)}
-              className="absolute bg-black text-white rounded-b cursor-pointer"
-              style={{left:k.index*colWidth-bw/2,width:bw,height:'60%'}}
-            />
-          );
-        })}
       </div>
       {/* Under keyboard toolbar */}
-      <div className="flex gap-2 p-2 items-center text-xs border-b">
+      <div className="flex flex-wrap gap-2 p-2 items-center text-xs border-b">
         <label>Next<select className="border" value={nextLen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setNextLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
         <label className="flex items-center gap-1"><input type="checkbox" checked={nextDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setNextDot(e.target.checked!)} /> dotted</label>
         <button className="border px-1" onClick={insertRest}>+ Pause</button>
         <button className="border px-1" onClick={clearAll}>Clear</button>
-        <label className="ml-auto flex items-center gap-1"><input type="checkbox" checked={keyboardMode} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setKeyboardMode(!!e.target.checked)} /> Keyboard mode <span className="italic">QWERTYUIOP[] = C5..B5, Space=pause</span></label>
+        <label className="mt-2 md:ml-auto flex items-center gap-1 w-full md:w-auto justify-end"><input type="checkbox" checked={keyboardMode} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setKeyboardMode(!!e.target.checked)} /> Keyboard mode <span className="italic">QWERTYUIOP[] = C5..B5, Space=pause</span></label>
       </div>
 
       {/* Bottom panels */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
         <div className="flex-1 p-2 flex flex-col">
           <div className="font-bold">RTTTL Text</div>
           <textarea className="flex-1 border p-1 mt-1" value={rtttlText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>)=>setRtttlText(e.target.value)} />
@@ -495,7 +478,7 @@ const App:React.FC = () => {
             <button className="border px-2" onClick={generateRTTTL}>Generate & Copy</button>
           </div>
         </div>
-        <div className="w-1/2 p-2 flex flex-col border-l">
+        <div className="flex-1 md:w-1/2 p-2 flex flex-col md:border-l mt-2 md:mt-0">
           <div className="font-bold">Morse Mode</div>
           <textarea className="border p-1 mt-1 flex-1" value={morseText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>)=>setMorseText(e.target.value)} />
           <div className="grid grid-cols-2 gap-1 text-xs mt-1">
