@@ -11,7 +11,11 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
-    "types": ["vite/client"]
+    "baseUrl": ".",
+    "paths": {
+      "react": ["src/types/react-shim"],
+      "react-dom/client": ["src/types/react-dom-client-shim"]
+    }
   },
   "include": ["src"]
 }
