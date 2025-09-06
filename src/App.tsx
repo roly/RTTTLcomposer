@@ -106,7 +106,7 @@ const App:React.FC = () => {
   const [colWidth,setColWidth] = useState(20);
 
   useEffect(()=>{
-    const ro = new ResizeObserver(entries=>{
+    const ro = new ResizeObserver((entries: ResizeObserverEntry[])=>{
       const w = entries[0].contentRect.width;
       setColWidth(Math.floor(w/48));
     });
@@ -115,13 +115,13 @@ const App:React.FC = () => {
   },[]);
 
   // Derived
-  const noteWithTiming = notes.reduce<{ev:NoteEvent;startTick:number;durTicks:number}[]>((arr,ev)=>{
+  const noteWithTiming = notes.reduce<{ev:NoteEvent;startTick:number;durTicks:number}[]>((arr: {ev:NoteEvent;startTick:number;durTicks:number}[], ev: NoteEvent)=>{
     const start = arr.length? arr[arr.length-1].startTick + arr[arr.length-1].durTicks : 0;
     const dur = ticksFromDen(ev.durationDen,ev.dotted);
     arr.push({ev,startTick:start,durTicks:dur});
     return arr;
   },[]);
-  const totalTicks = noteWithTiming.reduce((s,n)=>s+n.durTicks,0);
+  const totalTicks = noteWithTiming.reduce((s: number, n: {ev:NoteEvent;startTick:number;durTicks:number})=>s+n.durTicks,0);
   const tickSec = 60 / bpm / TICKS_PER_QUARTER;
   const gridWidth = KEYS.length*colWidth;
   const gridHeight = Math.max(240,totalTicks*pxPerTick+40);
@@ -157,19 +157,19 @@ const App:React.FC = () => {
   // Insert helper
   function insertEvent(ev:NoteEvent){
     const dur = ticksFromDen(ev.durationDen,ev.dotted);
-    setNotes(prev=>{
-      const nw = prev.reduce<{startTick:number;durTicks:number}[]>((arr,n)=>{
+    setNotes((prev: NoteEvent[])=>{
+      const nw = prev.reduce<{startTick:number;durTicks:number}[]>((arr: {startTick:number;durTicks:number}[], n: NoteEvent)=>{
         const st = arr.length? arr[arr.length-1].startTick + arr[arr.length-1].durTicks : 0;
         arr.push({startTick:st,durTicks:ticksFromDen(n.durationDen,n.dotted)});
         return arr;
       },[]);
-      const idx = nw.findIndex(n=>n.startTick>=cursorRef.current);
+      const idx = nw.findIndex((n: {startTick:number;durTicks:number})=>n.startTick>=(cursorRef.current ?? 0));
       const arr = [...prev];
       if(idx===-1) arr.push(ev); else arr.splice(idx,0,ev);
       return arr;
     });
-    cursorRef.current += dur;
-    setCursorTick(cursorRef.current);
+    cursorRef.current = (cursorRef.current ?? 0) + dur;
+    setCursorTick(cursorRef.current ?? 0);
   }
 
   // Keyboard click
@@ -195,18 +195,18 @@ const App:React.FC = () => {
 
   // Copy/Cut/Paste/Delete
   function copySel(){
-    const items = notes.filter(n=>selected.has(n.id)).map(({id,...rest})=>rest);
+    const items = notes.filter((n: NoteEvent)=>selected.has(n.id)).map(({id,...rest}: NoteEvent & {id: string})=>rest);
     setClipboard(items);
   }
   function cutSel(){ copySel(); delSel(); }
-  function delSel(){ setNotes(notes.filter(n=>!selected.has(n.id))); setSelected(new Set()); }
+  function delSel(){ setNotes(notes.filter((n: NoteEvent)=>!selected.has(n.id))); setSelected(new Set()); }
   function pasteClip(){
     if(!clipboard.length) return;
-    let t = cursorRef.current;
-    const newItems:NoteEvent[] = clipboard.map(c=>({...c,id:crypto.randomUUID()}));
+    let t = cursorRef.current ?? 0;
+    const newItems:NoteEvent[] = clipboard.map((c: Omit<NoteEvent,'id'>)=>({...c,id:crypto.randomUUID()} as NoteEvent));
     const newNotes = [...notes];
-    let idx = noteWithTiming.findIndex(n=>n.startTick>=cursorTick);
-    newItems.forEach(ev=>{
+    let idx = noteWithTiming.findIndex((n: {ev:NoteEvent;startTick:number;durTicks:number})=>n.startTick>=cursorTick);
+    newItems.forEach((ev: NoteEvent)=>{
       const dur = ticksFromDen(ev.durationDen,ev.dotted);
       if(idx===-1){ newNotes.push(ev); } else { newNotes.splice(idx,0,ev); idx++; }
       t+=dur;
@@ -216,7 +216,7 @@ const App:React.FC = () => {
 
   // Arrow key etc
   useEffect(()=>{
-    function onKey(e:KeyboardEvent){
+    function onKey(e: KeyboardEvent){
       if(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if(e.key===' ' && keyboardMode){ e.preventDefault(); insertRest(); }
       if(keyboardMode){
@@ -233,39 +233,39 @@ const App:React.FC = () => {
       if(selected.size){
         if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
           const d = e.key==='ArrowLeft'? -1 : 1;
-          const newNotes = notes.map(n=>{
+          const newNotes = notes.map((n: NoteEvent)=>{
             if(!selected.has(n.id) || n.isRest) return n;
             const ni = n.keyIndex! + d; if(ni<0 || ni>=KEYS.length) return n;
             return {...n,keyIndex:ni,note:KEYS[ni].name,octave:KEYS[ni].octave};
           });
           // veto if any went out of range
-          if(newNotes.every((n,i)=>!selected.has(notes[i].id) || (n.keyIndex!==notes[i].keyIndex))) setNotes(newNotes);
+          if(newNotes.every((n: NoteEvent, i: number)=>!selected.has(notes[i].id) || (n.keyIndex!==notes[i].keyIndex))) setNotes(newNotes);
         }
         if(e.key==='ArrowUp' && e.shiftKey){
-          const newNotes = notes.map(n=>{
+          const newNotes = notes.map((n: NoteEvent)=>{
             if(!selected.has(n.id)) return n;
             const idx = DUR_STATES.findIndex(d=>d.den===n.durationDen && !!d.dotted===!!n.dotted);
             if(idx < DUR_STATES.length-1){ const st = DUR_STATES[idx+1]; return {...n,durationDen:st.den as Den,dotted:st.dotted}; }
             return n;
           });
-          if(newNotes.every((n,i)=>!selected.has(notes[i].id) || n.durationDen!==notes[i].durationDen || n.dotted!==notes[i].dotted)) setNotes(newNotes);
+          if(newNotes.every((n: NoteEvent, i: number)=>!selected.has(notes[i].id) || n.durationDen!==notes[i].durationDen || n.dotted!==notes[i].dotted)) setNotes(newNotes);
         }
         if(e.key==='ArrowDown' && e.shiftKey){
-          const newNotes = notes.map(n=>{
+          const newNotes = notes.map((n: NoteEvent)=>{
             if(!selected.has(n.id)) return n;
             const idx = DUR_STATES.findIndex(d=>d.den===n.durationDen && !!d.dotted===!!n.dotted);
             if(idx>0){ const st = DUR_STATES[idx-1]; return {...n,durationDen:st.den as Den,dotted:st.dotted}; }
             return n;
           });
-          if(newNotes.every((n,i)=>!selected.has(notes[i].id) || n.durationDen!==notes[i].durationDen || n.dotted!==notes[i].dotted)) setNotes(newNotes);
+          if(newNotes.every((n: NoteEvent, i: number)=>!selected.has(notes[i].id) || n.durationDen!==notes[i].durationDen || n.dotted!==notes[i].dotted)) setNotes(newNotes);
         }
         if(e.key==='Delete' || e.key==='Backspace'){ delSel(); }
         if((e.key==='c'||e.key==='C') && (e.metaKey||e.ctrlKey)){ e.preventDefault(); copySel(); }
         if((e.key==='x'||e.key==='X') && (e.metaKey||e.ctrlKey)){ e.preventDefault(); cutSel(); }
         if((e.key==='v'||e.key==='V') && (e.metaKey||e.ctrlKey)){ e.preventDefault(); pasteClip(); }
       } else {
-        if(e.key==='ArrowUp'){ e.preventDefault(); const nt = Math.min(cursorRef.current+ticksFromDen(nextLen,nextDot),totalTicks); cursorRef.current = nt; setCursorTick(nt); }
-        if(e.key==='ArrowDown'){ e.preventDefault(); const nt = Math.max(0,cursorRef.current-ticksFromDen(nextLen,nextDot)); cursorRef.current = nt; setCursorTick(nt); }
+        if(e.key==='ArrowUp'){ e.preventDefault(); const base = cursorRef.current ?? 0; const nt = Math.min(base+ticksFromDen(nextLen,nextDot),totalTicks); cursorRef.current = nt; setCursorTick(nt); }
+        if(e.key==='ArrowDown'){ e.preventDefault(); const base = cursorRef.current ?? 0; const nt = Math.max(0,base-ticksFromDen(nextLen,nextDot)); cursorRef.current = nt; setCursorTick(nt); }
       }
     }
     window.addEventListener('keydown',onKey);
@@ -275,21 +275,31 @@ const App:React.FC = () => {
   // Playback
   const timeoutsRef = useRef<number[]>([]);
   function togglePlay(){
-    if(playing){ timeoutsRef.current.forEach(t=>clearTimeout(t)); timeoutsRef.current=[]; setPlaying(false); cursorRef.current = playTick; setCursorTick(playTick); return; }
+    if(playing){
+      const timeouts = timeoutsRef.current ?? (timeoutsRef.current = []);
+      timeouts.forEach((t: number)=>clearTimeout(t));
+      timeoutsRef.current = [];
+      setPlaying(false);
+      cursorRef.current = playTick;
+      setCursorTick(playTick);
+      return;
+    }
     setPlaying(true); setPlayTick(cursorTick);
-    noteWithTiming.forEach(n=>{
+    noteWithTiming.forEach((n: {ev:NoteEvent;startTick:number;durTicks:number})=>{
       const start = (n.startTick-cursorTick)*tickSec*1000;
       if(start>=0){
         const id = window.setTimeout(()=>{
           if(!n.ev.isRest){ playTone(KEYS[n.ev.keyIndex!].midi,n.durTicks*tickSec); }
           setPlayTick(n.startTick);
         },start);
-        timeoutsRef.current.push(id);
+        const timeouts = timeoutsRef.current ?? (timeoutsRef.current = []);
+        timeouts.push(id);
       }
     });
     const end = (totalTicks-cursorTick)*tickSec*1000;
     const endId = window.setTimeout(()=>{ setPlaying(false); cursorRef.current = totalTicks; setCursorTick(totalTicks); setPlayTick(totalTicks); },end);
-    timeoutsRef.current.push(endId);
+    const timeouts = timeoutsRef.current ?? (timeoutsRef.current = []);
+    timeouts.push(endId);
   }
 
   // Grid click
@@ -309,16 +319,17 @@ const App:React.FC = () => {
       setName(n);
       const parts = settings.split(',');
       let d:Den = defDen; let o = 5; let b = bpm;
-      parts.forEach(p=>{ const [k,v] = p.split('='); if(k==='d') d=parseInt(v) as Den; if(k==='o') o=parseInt(v); if(k==='b') b=parseInt(v); });
+      parts.forEach((p: string)=>{ const [k,v] = p.split('='); if(k==='d') d=parseInt(v) as Den; if(k==='o') o=parseInt(v); if(k==='b') b=parseInt(v); });
       setDefDen(d); setBpm(b);
       const evs:NoteEvent[] = [];
-      seq.split(',').forEach(tok=>{
+      seq.split(',').forEach((tok0: string)=>{
+        let tok = tok0;
         tok = tok.trim(); if(!tok) return; let dot=false; if(tok.includes('.')){ dot=true; tok=tok.replace('.',''); }
         let m = tok.match(/^\d+/); let den:Den = m? parseInt(m[0]) as Den : d; tok = tok.replace(/^\d+/,'');
         if(tok.startsWith('p')){ evs.push({id:crypto.randomUUID(),isRest:true,durationDen:den,dotted:dot}); return; }
         let note = tok[0].toUpperCase(); tok=tok.slice(1); let sharp=false; if(tok.startsWith('#')){sharp=true;tok=tok.slice(1);} let oct=o; if(tok) oct=parseInt(tok[0]);
         const name = note+(sharp?'#':'');
-        const keyIndex = KEYS.findIndex(k=>k.name===name && k.octave===oct);
+        const keyIndex = KEYS.findIndex((k: KeyDef)=>k.name===name && k.octave===oct);
         if(keyIndex>=0){ evs.push({id:crypto.randomUUID(),isRest:false,keyIndex,note:name,octave:oct,durationDen:den,dotted:dot}); }
       });
       setNotes(evs); cursorRef.current = 0; setCursorTick(0); setPlayTick(0);
@@ -326,7 +337,7 @@ const App:React.FC = () => {
   }
   function generateRTTTL(){
     const header = `${name}:d=${defDen},o=5,b=${bpm}:`;
-    const body = notes.map(n=>{
+    const body = notes.map((n: NoteEvent)=>{
       const dur = n.durationDen!==defDen? n.durationDen.toString(): '';
       const dot = n.dotted? '.':'';
       if(n.isRest) return `${dur}p${dot}`;
@@ -337,16 +348,16 @@ const App:React.FC = () => {
 
   // Morse Add
   function addMorse(){
-    const scaleNotes = scale==='Custom'? customScale.split(',').map(s=>s.trim()).filter(Boolean): SCALES[scale];
+    const scaleNotes = scale==='Custom'? customScale.split(',').map((s: string)=>s.trim()).filter(Boolean): SCALES[scale];
     if(!scaleNotes || !scaleNotes.length) return;
     const text = morseText.toUpperCase();
     for(let i=0;i<text.length;i++){
       const ch = text[i];
       if(ch===' '){ if(wordGap!=='None') insertEvent({id:crypto.randomUUID(),isRest:true,durationDen:wordGap,dotted:wordDot}); continue; }
       const code = MORSE[ch]; if(!code) continue;
-      const noteName = scaleNotes[scaleIndex.current % scaleNotes.length];
+      const noteName = scaleNotes[(scaleIndex.current ?? 0) % scaleNotes.length];
       const keyIndex = KEYS.findIndex(k=>k.name===noteName && k.octave===morseOct);
-      scaleIndex.current++;
+      scaleIndex.current = (scaleIndex.current ?? 0) + 1;
       for(let j=0;j<code.length;j++){
         const sym = code[j];
         if(sym==='.') insertEvent({id:crypto.randomUUID(),isRest:false,keyIndex,note:noteName,octave:morseOct,durationDen:dotLen,dotted:dotDot});
@@ -369,13 +380,13 @@ const App:React.FC = () => {
       {/* Top controls */}
       <div className="flex gap-2 p-2 items-start">
         <div className="flex flex-col">
-          <label>Name<input className="border p-1" value={name} onChange={e=>setName(e.target.value)} /></label>
+          <label>Name<input className="border p-1" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setName(e.target.value)} /></label>
         </div>
         <div className="flex flex-col">
-          <label>Tempo<select className="border p-1" value={bpm} onChange={e=>setBpm(parseInt(e.target.value))}>{TEMPOS.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
+          <label>Tempo<select className="border p-1" value={bpm} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setBpm(parseInt(e.target.value))}>{TEMPOS.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
         </div>
         <div className="flex flex-col">
-          <label>Default d<select className="border p-1" value={defDen} onChange={e=>setDefDen(parseInt(e.target.value) as Den)}>{DEFAULT_DENS.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
+          <label>Default d<select className="border p-1" value={defDen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDefDen(parseInt(e.target.value) as Den)}>{DEFAULT_DENS.map(t=><option key={t} value={t}>{t}</option>)}</select></label>
         </div>
         <div className="flex-1 h-24 border p-2 flex flex-col text-xs">
           <div>Events: {notes.length}</div>
@@ -400,18 +411,18 @@ const App:React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <div ref={gridRef} className="overflow-y-scroll h-[520px] relative" onClick={onGridClick}>
           <div ref={gridContentRef} className="relative" style={{width:gridWidth,height:gridHeight}}>
-            {Array.from({length:KEYS.length}).map((_,i)=>(
+            {Array.from({length:KEYS.length}).map((_: unknown, i: number)=>(
               <div key={i} className="absolute top-0 bottom-0 border-l border-gray-400/20" style={{left:i*colWidth}} />
             ))}
-            {Array.from({length:Math.floor(totalTicks/TICKS_PER_QUARTER)+1}).map((_,i)=>(
+            {Array.from({length:Math.floor(totalTicks/TICKS_PER_QUARTER)+1}).map((_: unknown, i: number)=>(
               <div key={i} className="absolute left-0 right-0 border-b border-gray-400/20" style={{bottom:i*TICKS_PER_QUARTER*pxPerTick}} />
             ))}
-            {noteWithTiming.map(n=> n.ev.isRest ? (
-              <div key={n.ev.id} onClick={e=>{e.stopPropagation();toggleSelect(n.ev.id);}} className={`absolute left-0 w-full ${selected.has(n.ev.id)?'bg-gray-500/50':'bg-gray-400/30'} text-center italic`} style={{height:n.durTicks*pxPerTick,bottom:n.startTick*pxPerTick}}>
+            {noteWithTiming.map((n: {ev:NoteEvent;startTick:number;durTicks:number})=> n.ev.isRest ? (
+              <div key={n.ev.id} onClick={(e: React.MouseEvent<HTMLDivElement>)=>{e.stopPropagation();toggleSelect(n.ev.id);}} className={`absolute left-0 w-full ${selected.has(n.ev.id)?'bg-gray-500/50':'bg-gray-400/30'} text-center italic`} style={{height:n.durTicks*pxPerTick,bottom:n.startTick*pxPerTick}}>
                 pause
               </div>
             ):(
-              <div key={n.ev.id} onClick={e=>{e.stopPropagation();toggleSelect(n.ev.id);}} className={`absolute rounded ${selected.has(n.ev.id)?'bg-blue-400':'bg-blue-600'}`} style={{height:n.durTicks*pxPerTick,width:colWidth-2,left:n.ev.keyIndex!*colWidth+1,bottom:n.startTick*pxPerTick}} />
+              <div key={n.ev.id} onClick={(e: React.MouseEvent<HTMLDivElement>)=>{e.stopPropagation();toggleSelect(n.ev.id);}} className={`absolute rounded ${selected.has(n.ev.id)?'bg-blue-400':'bg-blue-600'}`} style={{height:n.durTicks*pxPerTick,width:colWidth-2,left:n.ev.keyIndex!*colWidth+1,bottom:n.startTick*pxPerTick}} />
             ))}
             <div className="absolute left-0 right-0 h-0.5 bg-red-500" style={{bottom:(playing?playTick:cursorTick)*pxPerTick}} />
           </div>
@@ -428,18 +439,18 @@ const App:React.FC = () => {
       </div>
       {/* Under keyboard toolbar */}
       <div className="flex gap-2 p-2 items-center text-xs border-b">
-        <label>Next<select className="border" value={nextLen} onChange={e=>setNextLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-        <label className="flex items-center gap-1"><input type="checkbox" checked={nextDot} onChange={e=>setNextDot(e.target.checked)} /> dotted</label>
+        <label>Next<select className="border" value={nextLen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setNextLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+        <label className="flex items-center gap-1"><input type="checkbox" checked={nextDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setNextDot(e.target.checked!)} /> dotted</label>
         <button className="border px-1" onClick={insertRest}>+ Pause</button>
         <button className="border px-1" onClick={clearAll}>Clear</button>
-        <label className="ml-auto flex items-center gap-1"><input type="checkbox" checked={keyboardMode} onChange={e=>setKeyboardMode(e.target.checked)} /> Keyboard mode <span className="italic">QWERTYUIOP[] = C5..B5, Space=pause</span></label>
+        <label className="ml-auto flex items-center gap-1"><input type="checkbox" checked={keyboardMode} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setKeyboardMode(!!e.target.checked)} /> Keyboard mode <span className="italic">QWERTYUIOP[] = C5..B5, Space=pause</span></label>
       </div>
 
       {/* Bottom panels */}
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 p-2 flex flex-col">
           <div className="font-bold">RTTTL Text</div>
-          <textarea className="flex-1 border p-1 mt-1" value={rtttlText} onChange={e=>setRtttlText(e.target.value)} />
+          <textarea className="flex-1 border p-1 mt-1" value={rtttlText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>)=>setRtttlText(e.target.value)} />
           <div className="mt-1 flex gap-2">
             <button className="border px-2" onClick={parseRTTTL}>Parse → Grid</button>
             <button className="border px-2" onClick={generateRTTTL}>Generate & Copy</button>
@@ -447,21 +458,21 @@ const App:React.FC = () => {
         </div>
         <div className="w-1/2 p-2 flex flex-col border-l">
           <div className="font-bold">Morse Mode</div>
-          <textarea className="border p-1 mt-1 flex-1" value={morseText} onChange={e=>setMorseText(e.target.value)} />
+          <textarea className="border p-1 mt-1 flex-1" value={morseText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>)=>setMorseText(e.target.value)} />
           <div className="grid grid-cols-2 gap-1 text-xs mt-1">
-            <label>Dot<select className="border" value={dotLen} onChange={e=>setDotLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={dotDot} onChange={e=>setDotDot(e.target.checked)} /> dotted</label>
-            <label>Dash<select className="border" value={dashLen} onChange={e=>setDashLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={dashDot} onChange={e=>setDashDot(e.target.checked)} /> dotted</label>
-            <label>Symbol gap<select className="border" value={symGap} onChange={e=>setSymGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={symDot} onChange={e=>setSymDot(e.target.checked)} /> dotted</label>
-            <label>Letter gap<select className="border" value={letGap} onChange={e=>setLetGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={letDot} onChange={e=>setLetDot(e.target.checked)} /> dotted</label>
-            <label>Word gap<select className="border" value={wordGap} onChange={e=>setWordGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-            <label className="flex items-center gap-1"><input type="checkbox" checked={wordDot} onChange={e=>setWordDot(e.target.checked)} /> dotted</label>
-            <label className="col-span-2">Scale<select className="border ml-1" value={scale} onChange={e=>setScale(e.target.value)}>{Object.keys(SCALES).map(s=><option key={s} value={s}>{s}</option>)}<option value="Custom">Custom</option></select></label>
-            {scale==='Custom' && <label className="col-span-2">Notes<input className="border ml-1" value={customScale} onChange={e=>setCustomScale(e.target.value)} placeholder="C,C#,D" /></label>}
-            <label className="col-span-2">Octave<input className="border ml-1 w-12" type="number" min={4} max={7} value={morseOct} onChange={e=>setMorseOct(parseInt(e.target.value))} /></label>
+            <label>Dot<select className="border" value={dotLen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDotLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1"><input type="checkbox" checked={dotDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setDotDot(!!e.target.checked)} /> dotted</label>
+            <label>Dash<select className="border" value={dashLen} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setDashLen(parseInt(e.target.value) as Den)}>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1"><input type="checkbox" checked={dashDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setDashDot(!!e.target.checked)} /> dotted</label>
+            <label>Symbol gap<select className="border" value={symGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setSymGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1"><input type="checkbox" checked={symDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setSymDot(!!e.target.checked)} /> dotted</label>
+            <label>Letter gap<select className="border" value={letGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setLetGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1"><input type="checkbox" checked={letDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setLetDot(!!e.target.checked)} /> dotted</label>
+            <label>Word gap<select className="border" value={wordGap} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setWordGap(e.target.value as any)}><option>None</option>{NEXT_DENS.map((n: Den)=><option key={n} value={n}>{n}</option>)}</select></label>
+            <label className="flex items-center gap-1"><input type="checkbox" checked={wordDot} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setWordDot(!!e.target.checked)} /> dotted</label>
+            <label className="col-span-2">Scale<select className="border ml-1" value={scale} onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setScale(e.target.value)}>{Object.keys(SCALES).map((s: string)=><option key={s} value={s}>{s}</option>)}<option value="Custom">Custom</option></select></label>
+            {scale==='Custom' && <label className="col-span-2">Notes<input className="border ml-1" value={customScale} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setCustomScale(e.target.value)} placeholder="C,C#,D" /></label>}
+            <label className="col-span-2">Octave<input className="border ml-1 w-12" type="number" min={4} max={7} value={morseOct} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setMorseOct(parseInt(e.target.value))} /></label>
           </div>
           <button className="border px-2 mt-2" onClick={addMorse}>Add Morse</button>
         </div>
