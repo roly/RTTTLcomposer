@@ -132,7 +132,7 @@ const App:React.FC = () => {
       if(e.key===' ' && keyboardMode){ e.preventDefault(); insertRest(); }
       if(keyboardMode){
         const map = 'qwertyuiop[]';
-        const idx = map.indexOf(e.key);
+        const idx = map.indexOf(e.key.toLowerCase());
         if(idx>=0){
           e.preventDefault();
           const base = KEYS.findIndex(k=>k.name==='C' && k.octave===5);

@@ -63,7 +63,7 @@ const TopControls: React.FC<Props> = ({
     <div className="flex gap-2 items-center ml-auto">
       <button className="border px-2" onClick={()=>setDark(!dark)}>{dark?'Light':'Dark'}</button>
       <button
-        className="border px-2"
+        className="text-2xl"
         onClick={goToStart}
         aria-label="Go to start"
         title="Go to start"
@@ -71,7 +71,15 @@ const TopControls: React.FC<Props> = ({
         ⏮
       </button>
       <button
-        className="border px-2"
+        className="text-2xl"
+        onClick={togglePlay}
+        aria-label={playing ? 'Pause' : 'Play'}
+        title={playing ? 'Pause' : 'Play'}
+      >
+        {playing?'⏸':'▶️'}
+      </button>
+      <button
+        className="text-2xl"
         onClick={goToEnd}
         aria-label="Go to end"
         title="Go to end"
@@ -79,20 +87,12 @@ const TopControls: React.FC<Props> = ({
         ⏭
       </button>
       <button
-        className={`border px-2 ${loop?'bg-blue-500 text-white':''}`}
+        className={`text-2xl ${loop ? 'text-blue-500' : ''}`}
         onClick={()=>setLoop(!loop)}
         aria-label="Toggle loop"
         title="Toggle loop"
       >
         🔁
-      </button>
-      <button
-        className="border px-2"
-        onClick={togglePlay}
-        aria-label={playing ? 'Pause' : 'Play'}
-        title={playing ? 'Pause' : 'Play'}
-      >
-        {playing?'⏸':'▶️'}
       </button>
       <span className="text-[10px]">Shift+Enter to Play/Stop</span>
     </div>
