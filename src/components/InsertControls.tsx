@@ -61,10 +61,11 @@ const InsertControls: React.FC<Props> = ({
         ⏭
       </button>
       <button
-        className={`text-2xl ${loop ? 'text-blue-500' : ''}`}
+        className={`text-2xl px-1 rounded ${loop ? 'bg-blue-500 text-white' : ''}`}
         onClick={() => setLoop(!loop)}
         aria-label="Toggle loop"
         title="Toggle loop"
+        aria-pressed={loop}
       >
         🔁
       </button>

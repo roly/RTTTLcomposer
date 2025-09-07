@@ -11,12 +11,12 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
   const [dotLen, setDotLen] = useState<Den>(8);
   const [dotDot, setDotDot] = useState(false);
   const [dashLen, setDashLen] = useState<Den>(4);
-  const [dashDot, setDashDot] = useState(false);
-  const [symGap, setSymGap] = useState<Den | 'None'>('None');
+  const [dashDot, setDashDot] = useState(true);
+  const [symGap, setSymGap] = useState<Den | 'None'>(8);
   const [symDot, setSymDot] = useState(false);
-  const [letGap, setLetGap] = useState<Den | 'None'>('None');
+  const [letGap, setLetGap] = useState<Den | 'None'>(4);
   const [letDot, setLetDot] = useState(false);
-  const [wordGap, setWordGap] = useState<Den | 'None'>('None');
+  const [wordGap, setWordGap] = useState<Den | 'None'>(2);
   const [wordDot, setWordDot] = useState(false);
   const [scale, setScale] = useState('C Major');
   const [customScale, setCustomScale] = useState('');
