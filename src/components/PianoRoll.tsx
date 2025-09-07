@@ -40,10 +40,10 @@ const PianoRoll: React.FC<Props> = ({
 
   useEffect(() => {
     const ro = new ResizeObserver((entries) => {
-      const rect = entries[0].contentRect;
-      const cw = Math.floor(rect.width / keys.length);
+      const w = (entries[0].target as HTMLElement).clientWidth;
+      const cw = w / keys.length;
       setColWidth(cw);
-      setContainerHeight(rect.height);
+      setContainerHeight(entries[0].contentRect.height);
     });
     if (gridRef.current) ro.observe(gridRef.current);
     return () => ro.disconnect();
@@ -71,15 +71,15 @@ const PianoRoll: React.FC<Props> = ({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full items-start">
       <div
         ref={gridRef}
-        className="overflow-y-scroll h-72 md:h-[520px] flex flex-col justify-end"
+        className="w-full overflow-y-scroll h-72 md:h-[520px] flex flex-col items-start justify-end"
         onClick={onGridClick}
       >
         <div
           ref={gridContentRef}
-          className="relative mx-auto flex-none"
+          className="relative flex-none"
           style={{ width: gridWidth, height: gridHeight }}
         >
             {Array.from({ length: keys.length }).map((_, i) => (
@@ -145,9 +145,7 @@ const PianoRoll: React.FC<Props> = ({
             />
           </div>
         </div>
-      <div className="mx-auto" style={{ width: gridWidth }}>
-        <Keyboard keys={keys} colWidth={colWidth} onKeyPress={onKeyPress} />
-      </div>
+      <Keyboard keys={keys} colWidth={colWidth} onKeyPress={onKeyPress} />
     </div>
   );
 };
