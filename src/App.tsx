@@ -276,12 +276,6 @@ const App:React.FC = () => {
           clipboardLength={clipboard.length}
           dark={dark}
           setDark={setDark}
-          loop={loop}
-          setLoop={setLoop}
-          playing={playing}
-          togglePlay={togglePlay}
-          goToStart={goToStart}
-          goToEnd={goToEnd}
         />
 
       {/* Piano roll */}
@@ -306,6 +300,12 @@ const App:React.FC = () => {
         setNextDot={setNextDot}
         insertRest={insertRest}
         clearAll={clearAll}
+        goToStart={goToStart}
+        togglePlay={togglePlay}
+        goToEnd={goToEnd}
+        loop={loop}
+        setLoop={setLoop}
+        playing={playing}
         keyboardMode={keyboardMode}
         setKeyboardMode={setKeyboardMode}
       />

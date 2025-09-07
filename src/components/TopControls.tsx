@@ -19,20 +19,13 @@ interface Props {
   clipboardLength: number;
   dark: boolean;
   setDark: (v: boolean) => void;
-  loop: boolean;
-  setLoop: (v: boolean) => void;
-  playing: boolean;
-  togglePlay: () => void;
-  goToStart: () => void;
-  goToEnd: () => void;
 }
 
 const TopControls: React.FC<Props> = ({
   name, setName, bpm, setBpm, defDen, setDefDen,
   notesLength, totalTicks, lengthSec, selectedSize,
   copySel, cutSel, pasteClip, delSel, clipboardLength,
-  dark, setDark, loop, setLoop, playing, togglePlay,
-  goToStart, goToEnd
+  dark, setDark
 }) => (
   <div className="flex gap-4 p-2 items-center flex-wrap text-xs">
     <label className="flex items-center gap-1">Name
@@ -60,42 +53,14 @@ const TopControls: React.FC<Props> = ({
         <button className="border px-1" onClick={delSel}>Delete</button>
       </div>
     </div>
-    <div className="flex gap-2 items-center ml-auto">
-      <button className="border px-2" onClick={()=>setDark(!dark)}>{dark?'Light':'Dark'}</button>
-      <button
-        className="text-2xl"
-        onClick={goToStart}
-        aria-label="Go to start"
-        title="Go to start"
-      >
-        ⏮
-      </button>
-      <button
-        className="text-2xl"
-        onClick={togglePlay}
-        aria-label={playing ? 'Pause' : 'Play'}
-        title={playing ? 'Pause' : 'Play'}
-      >
-        {playing?'⏸':'▶️'}
-      </button>
-      <button
-        className="text-2xl"
-        onClick={goToEnd}
-        aria-label="Go to end"
-        title="Go to end"
-      >
-        ⏭
-      </button>
-      <button
-        className={`text-2xl ${loop ? 'text-blue-500' : ''}`}
-        onClick={()=>setLoop(!loop)}
-        aria-label="Toggle loop"
-        title="Toggle loop"
-      >
-        🔁
-      </button>
-      <span className="text-[10px]">Shift+Enter to Play/Stop</span>
-    </div>
+    <button
+      className="border px-2 ml-auto"
+      onClick={()=>setDark(!dark)}
+      aria-label="Toggle theme"
+      title="Toggle theme"
+    >
+      {dark ? '🌞' : '🌙'}
+    </button>
   </div>
 );
 
