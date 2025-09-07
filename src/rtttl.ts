@@ -3,15 +3,16 @@ import { Den, NoteEvent, KEYS, KeyDef } from './music';
 export interface RTTTLSong {
   name: string;
   defDen: Den;
+  defOct: number;
   bpm: number;
   notes: NoteEvent[];
 }
 
-export function parseRTTTL(txt: string, currentDef: Den, currentBpm: number): RTTTLSong {
+export function parseRTTTL(txt: string, currentDef: Den, currentOct: number, currentBpm: number): RTTTLSong {
   const [n, settings, seq] = txt.trim().split(':');
   const parts = settings.split(',');
   let d: Den = currentDef;
-  let o = 5;
+  let o = currentOct;
   let b: number = currentBpm;
   parts.forEach(p => {
     const [k, v] = p.split('=');
@@ -50,11 +51,11 @@ export function parseRTTTL(txt: string, currentDef: Den, currentBpm: number): RT
       evs.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: name, octave: oct, durationDen: den, dotted: dot });
     }
   });
-  return { name: n, defDen: d, bpm: b, notes: evs };
+  return { name: n, defDen: d, defOct: o, bpm: b, notes: evs };
 }
 
-export function generateRTTTL(name: string, defDen: Den, bpm: number, notes: NoteEvent[]): string {
-  const header = `${name}:d=${defDen},o=5,b=${bpm}:`;
+export function generateRTTTL(name: string, defDen: Den, defOct: number, bpm: number, notes: NoteEvent[]): string {
+  const header = `${name}:d=${defDen},o=${defOct},b=${bpm}:`;
   const body = notes
     .map(n => {
       const dur = n.durationDen !== defDen ? n.durationDen.toString() : '';
