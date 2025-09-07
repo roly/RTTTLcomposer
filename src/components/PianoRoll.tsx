@@ -71,12 +71,12 @@ const PianoRoll: React.FC<Props> = ({
     <div className="flex flex-col">
       <div
         ref={gridRef}
-        className="overflow-y-scroll h-72 md:h-[520px] relative"
+        className="overflow-y-scroll h-72 md:h-[520px] flex flex-col justify-end"
         onClick={onGridClick}
       >
         <div
           ref={gridContentRef}
-          className="relative mx-auto"
+          className="relative mx-auto flex-none"
           style={{ width: gridWidth, height: gridHeight }}
         >
             {Array.from({ length: keys.length }).map((_, i) => (
@@ -105,7 +105,7 @@ const PianoRoll: React.FC<Props> = ({
                   }}
                   className={`absolute left-0 w-full ${
                     selected.has(n.ev.id)
-                      ? 'bg-gray-500/50'
+                      ? 'bg-yellow-400 text-gray-900 font-semibold'
                       : 'bg-gray-400/30'
                   } text-center italic`}
                   style={{

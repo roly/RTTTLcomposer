@@ -13,7 +13,7 @@ const Keyboard: React.FC<Props> = ({ keys, colWidth, onKeyPress }) => (
       <div
         key={k.index}
         onClick={() => onKeyPress(k)}
-        className={`absolute flex items-end justify-center cursor-pointer ${k.isBlack ? 'bg-black text-white' : 'bg-white border'}`}
+        className={`absolute flex items-end justify-center cursor-pointer box-border ${k.isBlack ? 'bg-black text-white' : 'bg-white border'}`}
         style={{left: k.index*colWidth, width: colWidth, height: '100%'}}
       >
         {!k.isBlack && <span className="text-xs text-gray-800">{k.label}</span>}
