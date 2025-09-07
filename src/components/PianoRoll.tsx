@@ -36,18 +36,21 @@ const PianoRoll: React.FC<Props> = ({
   const gridRef = useRef<HTMLDivElement>(null);
   const gridContentRef = useRef<HTMLDivElement>(null);
   const [colWidth, setColWidth] = useState(20);
+  const [containerHeight, setContainerHeight] = useState(240);
 
   useEffect(() => {
     const ro = new ResizeObserver((entries) => {
-      const w = entries[0].contentRect.width;
-      setColWidth(w / keys.length);
+      const rect = entries[0].contentRect;
+      const cw = Math.floor(rect.width / keys.length);
+      setColWidth(cw);
+      setContainerHeight(rect.height);
     });
     if (gridRef.current) ro.observe(gridRef.current);
     return () => ro.disconnect();
   }, [keys.length]);
 
   const gridWidth = keys.length * colWidth;
-  const gridHeight = Math.max(240, totalTicks * pxPerTick + 40);
+  const gridHeight = Math.max(containerHeight, totalTicks * pxPerTick + 40);
 
   useEffect(() => {
     const t = playing ? playTick : cursorTick;
