@@ -36,7 +36,7 @@ export const DUR_STATES = [
   {den:2,dotted:false},{den:2,dotted:true},
   {den:1,dotted:false},{den:1,dotted:true},
 ];
-export const TEMPOS = [5,28,31,35,40,45,50,56,63,70,80,90,100,112,125,140,160,180,200,225,250,285,320,355,400,450,500,565,635,715,800,900];
+export const TEMPOS = [5,28,31,35,40,45,50,56,63,70,80,90,100,112,125,140,160,170,180,200,225,250,285,320,355,400,450,500,565,635,715,800,900];
 export const DEFAULT_DENS:Den[] = [1,2,4,8,16,32];
 export const NEXT_DENS:Den[] = [1,2,4,8,16,32];
 

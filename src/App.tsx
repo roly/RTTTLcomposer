@@ -19,8 +19,8 @@ const App:React.FC = () => {
 
   // State
   const [name,setName] = useState('Tune');
-  const [bpm,setBpm] = useState(120);
-  const [defDen,setDefDen] = useState<Den>(4);
+  const [bpm,setBpm] = useState(170);
+  const [defDen,setDefDen] = useState<Den>(8);
   const [notes,setNotes] = useState<NoteEvent[]>([]);
   const [selected,setSelected] = useState<Set<string>>(new Set());
   const [clipboard,setClipboard] = useState<Omit<NoteEvent,'id'>[]>([]);
@@ -28,13 +28,13 @@ const App:React.FC = () => {
   const cursorRef = useRef(0);
   useEffect(()=>{ cursorRef.current = cursorTick; },[cursorTick]);
   const updateCursor = (tick:number) => { cursorRef.current = tick; setCursorTick(tick); };
-  const [nextLen,setNextLen] = useState<Den>(4);
+  const [nextLen,setNextLen] = useState<Den>(8);
   const [nextDot,setNextDot] = useState(false);
   const [keyboardMode,setKeyboardMode] = useState(false);
   const [playing,setPlaying] = useState(false);
   const [playTick,setPlayTick] = useState(0);
   const [loop,setLoop] = useState(false);
-  const [rtttl,setRtttl] = useState('');
+  const [rtttl,setRtttl] = useState('Tune:d=8,o=5,b=170:');
   const skipParseRef = useRef(false);
 
   // Derived
