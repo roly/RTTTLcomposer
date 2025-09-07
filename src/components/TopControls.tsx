@@ -1,6 +1,8 @@
 import React from 'react';
 import { Den, TEMPOS, DEFAULT_DENS } from '../music';
 
+const OCTAVES = [4,5,6,7];
+
 interface Props {
   name: string;
   setName: (v: string) => void;
@@ -8,6 +10,8 @@ interface Props {
   setBpm: (v: number) => void;
   defDen: Den;
   setDefDen: (d: Den) => void;
+  defOct: number;
+  setDefOct: (v: number) => void;
   notesLength: number;
   totalTicks: number;
   lengthSec: number;
@@ -22,7 +26,7 @@ interface Props {
 }
 
 const TopControls: React.FC<Props> = ({
-  name, setName, bpm, setBpm, defDen, setDefDen,
+  name, setName, bpm, setBpm, defDen, setDefDen, defOct, setDefOct,
   notesLength, totalTicks, lengthSec, selectedSize,
   copySel, cutSel, pasteClip, delSel, clipboardLength,
   dark, setDark
@@ -39,6 +43,11 @@ const TopControls: React.FC<Props> = ({
     <label className="flex items-center gap-1">Default d
       <select className="border p-1" value={defDen} onChange={e=>setDefDen(parseInt(e.target.value) as Den)}>
         {DEFAULT_DENS.map(t => <option key={t} value={t}>{t}</option>)}
+      </select>
+    </label>
+    <label className="flex items-center gap-1">Default o
+      <select className="border p-1" value={defOct} onChange={e=>setDefOct(parseInt(e.target.value))}>
+        {OCTAVES.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
     </label>
     <div className="flex-1 flex gap-1 flex-wrap items-center">

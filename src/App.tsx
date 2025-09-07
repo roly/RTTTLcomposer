@@ -21,6 +21,7 @@ const App:React.FC = () => {
   const [name,setName] = useState('Tune');
   const [bpm,setBpm] = useState(170);
   const [defDen,setDefDen] = useState<Den>(8);
+  const [defOct,setDefOct] = useState(5);
   const [notes,setNotes] = useState<NoteEvent[]>([]);
   const [selected,setSelected] = useState<Set<string>>(new Set());
   const [clipboard,setClipboard] = useState<Omit<NoteEvent,'id'>[]>([]);
@@ -49,16 +50,16 @@ const App:React.FC = () => {
 
   useEffect(()=>{
     skipParseRef.current = true;
-    setRtttl(generateRTTTL(name,defDen,bpm,notes));
-  },[name,defDen,bpm,notes]);
+    setRtttl(generateRTTTL(name,defDen,defOct,bpm,notes));
+  },[name,defDen,defOct,bpm,notes]);
 
   useEffect(()=>{
     if(skipParseRef.current){ skipParseRef.current=false; return; }
     try{
-      const song = parseRTTTL(rtttl, defDen, bpm);
+      const song = parseRTTTL(rtttl, defDen, defOct, bpm);
       clearTimers();
       setPlaying(false);
-      setName(song.name); setDefDen(song.defDen); setBpm(song.bpm); setNotes(song.notes);
+      setName(song.name); setDefDen(song.defDen); setDefOct(song.defOct); setBpm(song.bpm); setNotes(song.notes);
       cursorRef.current = 0; setCursorTick(0); setPlayTick(0);
     }catch(err){
       // ignore parse errors
@@ -251,7 +252,7 @@ const App:React.FC = () => {
   // Dev self-test
   useEffect(()=>{
     console.assert(DUR_STATES.length===12,'duration states length');
-    const rt = `${name}:d=${defDen},o=5,b=${bpm}:`;
+    const rt = `${name}:d=${defDen},o=${defOct},b=${bpm}:`;
     console.assert(rt.startsWith(name),'rtttl header test');
   },[]);
 
@@ -265,6 +266,8 @@ const App:React.FC = () => {
           setBpm={setBpm}
           defDen={defDen}
           setDefDen={setDefDen}
+          defOct={defOct}
+          setDefOct={setDefOct}
           notesLength={notes.length}
           totalTicks={totalTicks}
           lengthSec={totalTicks*tickSec}
