@@ -36,17 +36,14 @@ const PianoRoll: React.FC<Props> = ({
   insertRest,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
-  const gridContentRef = useRef<HTMLDivElement>(null);
-  const playheadRef = useRef<HTMLDivElement>(null);
   const [colWidth, setColWidth] = useState(20);
   const [containerHeight, setContainerHeight] = useState(240);
 
   useEffect(() => {
-    const ro = new ResizeObserver((entries) => {
-      const w = (entries[0].target as HTMLElement).clientWidth;
-      const cw = w / keys.length;
-      setColWidth(cw);
-      setContainerHeight(entries[0].contentRect.height);
+    const ro = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width;
+      setColWidth(w / keys.length);
+      setContainerHeight(entry.contentRect.height);
     });
     if (gridRef.current) ro.observe(gridRef.current);
     return () => ro.disconnect();
@@ -56,17 +53,17 @@ const PianoRoll: React.FC<Props> = ({
   const gridHeight = Math.max(containerHeight, totalTicks * pxPerTick + 40);
 
   useEffect(() => {
-    // Keep the current cursor or play position in view by scrolling the
-    // playhead line into the center of the grid container. This provides a
-    // smooth auto‑scrolling behaviour as notes are entered or played back.
-    if (playheadRef.current) {
-      playheadRef.current.scrollIntoView({ block: 'center', inline: 'nearest' });
-    }
+    if (!gridRef.current) return;
+    const target = (playing ? playTick : cursorTick) * pxPerTick;
+    gridRef.current.scrollTop = Math.max(
+      0,
+      target - gridRef.current.clientHeight / 2,
+    );
   }, [playTick, cursorTick, playing, gridHeight]);
 
   function onGridClick(e: React.MouseEvent) {
-    const rect = gridContentRef.current!.getBoundingClientRect();
-    const y = rect.bottom - e.clientY;
+    const rect = gridRef.current!.getBoundingClientRect();
+    const y = e.clientY - rect.top + gridRef.current!.scrollTop;
     const tick = Math.max(0, Math.round(y / pxPerTick));
     setCursorTick(tick);
   }
@@ -75,76 +72,72 @@ const PianoRoll: React.FC<Props> = ({
     <div className="flex flex-col w-full items-start">
       <div
         ref={gridRef}
-        className="w-full overflow-y-auto h-72 md:h-[520px] flex flex-col items-start justify-end"
+        className="w-full overflow-y-auto h-72 md:h-[520px] relative"
         onClick={onGridClick}
       >
         <div
-          ref={gridContentRef}
-          className="relative flex-none"
+          className="relative"
           style={{ width: gridWidth, height: gridHeight }}
         >
-            {Array.from({ length: keys.length }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute top-0 bottom-0 border-l border-gray-400/20"
-                style={{ left: i * colWidth }}
-              />
-            ))}
-            {Array.from({
-              length: Math.floor(totalTicks / TICKS_PER_QUARTER) + 1,
-            }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute left-0 right-0 border-b border-gray-400/20"
-                style={{ bottom: i * TICKS_PER_QUARTER * pxPerTick }}
-              />
-            ))}
-            {noteWithTiming.map((n) =>
-              n.ev.isRest ? (
-                <div
-                  key={n.ev.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSelect(n.ev.id);
-                  }}
-                  className={`absolute left-0 w-full ${
-                    selected.has(n.ev.id)
-                      ? 'bg-yellow-400 text-gray-900 font-semibold'
-                      : 'bg-gray-400/30'
-                  }`}
-                  style={{
-                    height: n.durTicks * pxPerTick,
-                    bottom: n.startTick * pxPerTick,
-                  }}
-                />
-              ) : (
-                <div
-                  key={n.ev.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSelect(n.ev.id);
-                  }}
-                  className={`absolute rounded ${
-                    selected.has(n.ev.id)
-                      ? 'bg-blue-400'
-                      : 'bg-blue-600'
-                  }`}
-                  style={{
-                    height: n.durTicks * pxPerTick,
-                    width: colWidth - 2,
-                    left: n.ev.keyIndex! * colWidth + 1,
-                    bottom: n.startTick * pxPerTick,
-                  }}
-                />
-              )
-            )}
+          {Array.from({ length: keys.length }).map((_, i) => (
             <div
-              ref={playheadRef}
-              className="absolute left-0 right-0 h-0.5 bg-red-500"
-              style={{ bottom: (playing ? playTick : cursorTick) * pxPerTick }}
+              key={i}
+              className="absolute top-0 bottom-0 border-l border-gray-400/20"
+              style={{ left: i * colWidth }}
             />
-          </div>
+          ))}
+          {Array.from({
+            length: Math.floor(totalTicks / TICKS_PER_QUARTER) + 1,
+          }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute left-0 right-0 border-b border-gray-400/20"
+              style={{ top: i * TICKS_PER_QUARTER * pxPerTick }}
+            />
+          ))}
+          {noteWithTiming.map((n) =>
+            n.ev.isRest ? (
+              <div
+                key={n.ev.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSelect(n.ev.id);
+                }}
+                className={`absolute left-0 w-full ${
+                  selected.has(n.ev.id)
+                    ? 'bg-yellow-400 text-gray-900 font-semibold'
+                    : 'bg-gray-400/30'
+                }`}
+                style={{
+                  height: n.durTicks * pxPerTick,
+                  top: n.startTick * pxPerTick,
+                }}
+              />
+            ) : (
+              <div
+                key={n.ev.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSelect(n.ev.id);
+                }}
+                className={`absolute rounded ${
+                  selected.has(n.ev.id) ? 'bg-blue-400' : 'bg-blue-600'
+                }`}
+                style={{
+                  height: n.durTicks * pxPerTick,
+                  width: colWidth - 2,
+                  left: n.ev.keyIndex! * colWidth + 1,
+                  top: n.startTick * pxPerTick,
+                }}
+              />
+            ),
+          )}
+          <div
+            className="absolute left-0 right-0 h-0.5 bg-red-500 pointer-events-none"
+            style={{ top: (playing ? playTick : cursorTick) * pxPerTick }}
+          />
         </div>
+      </div>
       <div className="flex flex-col" style={{ width: gridWidth }}>
         <Keyboard keys={keys} colWidth={colWidth} onKeyPress={onKeyPress} />
         <button
@@ -162,4 +155,3 @@ const PianoRoll: React.FC<Props> = ({
 };
 
 export default PianoRoll;
-
