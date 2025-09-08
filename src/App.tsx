@@ -196,8 +196,8 @@ const App:React.FC = () => {
             const ni = n.keyIndex! + d; if(ni<0 || ni>=KEYS.length) return n;
             return {...n,keyIndex:ni,note:KEYS[ni].name,octave:KEYS[ni].octave};
           });
-          // veto if any went out of range
-          if(newNotes.every((n: NoteEvent, i: number)=>!selected.has(notes[i].id) || (n.keyIndex!==notes[i].keyIndex))) setNotes(newNotes);
+          // veto if any went out of range (ignore rests)
+          if(newNotes.every((n: NoteEvent, i: number)=>!selected.has(notes[i].id) || notes[i].isRest || (n.keyIndex!==notes[i].keyIndex))) setNotes(newNotes);
         }
         if(e.key==='ArrowUp' && e.shiftKey){
           const newNotes = notes.map((n: NoteEvent)=>{
