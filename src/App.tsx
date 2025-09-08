@@ -281,7 +281,7 @@ const App:React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col text-xs md:text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Top controls */}
-        <TopControls
+      <TopControls
           name={name}
           setName={setName}
           bpm={bpm}
@@ -298,6 +298,7 @@ const App:React.FC = () => {
           cutSel={cutSel}
           pasteClip={pasteClip}
           delSel={delSel}
+          clearAll={clearAll}
           clipboardLength={clipboard.length}
           dark={dark}
           setDark={setDark}
@@ -316,6 +317,7 @@ const App:React.FC = () => {
         playing={playing}
         playTick={playTick}
         onKeyPress={onKeyPress}
+        insertRest={insertRest}
       />
 
       {/* Under keyboard toolbar */}
@@ -324,8 +326,6 @@ const App:React.FC = () => {
         setNextLen={setNextLen}
         nextDot={nextDot}
         setNextDot={setNextDot}
-        insertRest={insertRest}
-        clearAll={clearAll}
         goToStart={goToStart}
         togglePlay={togglePlay}
         goToEnd={goToEnd}

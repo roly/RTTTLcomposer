@@ -21,6 +21,7 @@ interface Props {
   cutSel: () => void;
   pasteClip: () => void;
   delSel: () => void;
+  clearAll: () => void;
   clipboardLength: number;
   dark: boolean;
   setDark: (v: boolean) => void;
@@ -30,7 +31,7 @@ interface Props {
 const TopControls: React.FC<Props> = ({
   name, setName, bpm, setBpm, defDen, setDefDen, defOct, setDefOct,
   notesLength, totalTicks, lengthSec, selectedSize,
-  copySel, cutSel, pasteClip, delSel, clipboardLength,
+  copySel, cutSel, pasteClip, delSel, clearAll, clipboardLength,
   dark, setDark, lastSelected
 }) => (
   <div className="flex gap-4 p-2 items-center flex-wrap text-xs">
@@ -74,10 +75,11 @@ const TopControls: React.FC<Props> = ({
         <button className="border px-1" onClick={cutSel}>Cut</button>
         <button className="border px-1" disabled={!clipboardLength} onClick={pasteClip}>Paste</button>
         <button className="border px-1" onClick={delSel}>Delete</button>
+        <button className="border px-1" onClick={clearAll}>Clear</button>
       </div>
     </div>
     <button
-      className="border px-2 ml-auto"
+      className="px-2 ml-auto"
       onClick={() => setDark(!dark)}
       aria-label="Toggle theme"
       title="Toggle theme"
