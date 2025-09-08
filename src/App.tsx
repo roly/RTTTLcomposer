@@ -7,6 +7,7 @@ import PianoRoll from "./components/PianoRoll";
 import InsertControls from "./components/InsertControls";
 import RTTTLControls from "./components/RTTTLControls";
 import MorseControls from "./components/MorseControls";
+import InterleaveControls from "./components/InterleaveControls";
 import { parseRTTTL, generateRTTTL } from "./rtttl";
 
 
@@ -38,6 +39,7 @@ const App:React.FC = () => {
   const [loop,setLoop] = useState(false);
   const [rtttl,setRtttl] = useState('Tune:d=8,o=5,b=170:');
   const skipParseRef = useRef(false);
+  const [extraTab, setExtraTab] = useState<'morse'|'interleave'>('morse');
 
   // Derived
   const noteWithTiming = notes.reduce<{ev:NoteEvent;startTick:number;durTicks:number}[]>((arr: {ev:NoteEvent;startTick:number;durTicks:number}[], ev: NoteEvent)=>{
@@ -295,6 +297,25 @@ const App:React.FC = () => {
     setPlayTick(totalTicks);
   }
 
+  function interleaveRTTTL(txt:string){
+    try{
+      const song = parseRTTTL(txt, defDen, defOct, bpm);
+      setNotes(prev => {
+        const result: NoteEvent[] = [];
+        const max = Math.max(prev.length, song.notes.length);
+        for(let i=0;i<max;i++){
+          if(i<prev.length) result.push(prev[i]);
+          if(i<song.notes.length) result.push(song.notes[i]);
+        }
+        return result;
+      });
+      setSelected(new Set());
+      setLastSelected(null);
+    }catch(err){
+      // ignore parse errors
+    }
+  }
+
   // Dev self-test
   useEffect(()=>{
     console.assert(DUR_STATES.length===12,'duration states length');
@@ -369,9 +390,26 @@ const App:React.FC = () => {
           rtttl={rtttl}
           setRtttl={setRtttl}
         />
-        <MorseControls
-          onAdd={(events)=>events.forEach(insertEvent)}
-        />
+        <div className="flex-1 md:w-1/2 flex flex-col md:border-l mt-2 md:mt-0">
+          <div className="flex gap-2 border-b px-2">
+            <button
+              className={`px-2 ${extraTab==='morse' ? 'font-bold border-b-2' : ''}`}
+              onClick={()=>setExtraTab('morse')}
+            >Morse</button>
+            <button
+              className={`px-2 ${extraTab==='interleave' ? 'font-bold border-b-2' : ''}`}
+              onClick={()=>setExtraTab('interleave')}
+            >Interleave</button>
+          </div>
+          <div className="p-2 flex-1 overflow-auto">
+            {extraTab==='morse' && (
+              <MorseControls onAdd={(events)=>events.forEach(insertEvent)} />
+            )}
+            {extraTab==='interleave' && (
+              <InterleaveControls onInterleave={interleaveRTTTL} />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

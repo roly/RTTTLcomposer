@@ -62,7 +62,7 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
   }
 
   return (
-    <div className="flex-1 md:w-1/2 p-2 flex flex-col md:border-l mt-2 md:mt-0">
+    <div className="flex flex-col flex-1">
       <div className="font-bold">Morse Mode</div>
       <textarea className="border p-1 mt-1 flex-1" value={morseText} onChange={e=>setMorseText(e.target.value)} />
       <div className="grid grid-cols-2 gap-1 text-xs mt-1">
