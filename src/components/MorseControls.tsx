@@ -55,16 +55,12 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
           <select className="border" value={dotLen} onChange={e=>setDotLen(parseInt(e.target.value) as Den)}>
             {NEXT_DENS.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
-        </label>
-        <label className="flex items-center gap-1">
           <input type="checkbox" checked={dotDot} onChange={e=>setDotDot(e.target.checked)} /> dotted
         </label>
         <label className="flex items-center gap-1">Dash
           <select className="border" value={dashLen} onChange={e=>setDashLen(parseInt(e.target.value) as Den)}>
             {NEXT_DENS.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
-        </label>
-        <label className="flex items-center gap-1">
           <input type="checkbox" checked={dashDot} onChange={e=>setDashDot(e.target.checked)} /> dotted
         </label>
         <label className="flex items-center gap-1">Symbol gap
@@ -72,8 +68,6 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
             <option>None</option>
             {NEXT_DENS.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
-        </label>
-        <label className="flex items-center gap-1">
           <input type="checkbox" checked={symDot} onChange={e=>setSymDot(e.target.checked)} /> dotted
         </label>
         <label className="flex items-center gap-1">Letter gap
@@ -81,8 +75,6 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
             <option>None</option>
             {NEXT_DENS.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
-        </label>
-        <label className="flex items-center gap-1">
           <input type="checkbox" checked={letDot} onChange={e=>setLetDot(e.target.checked)} /> dotted
         </label>
         <label className="flex items-center gap-1">Word gap
@@ -90,8 +82,6 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
             <option>None</option>
             {NEXT_DENS.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
-        </label>
-        <label className="flex items-center gap-1">
           <input type="checkbox" checked={wordDot} onChange={e=>setWordDot(e.target.checked)} /> dotted
         </label>
         <label className="col-span-2 flex items-center gap-1">Scale

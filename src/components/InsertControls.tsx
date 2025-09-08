@@ -6,6 +6,7 @@ import {
   IconPlayerPause,
   IconPlayerSkipForward,
   IconRepeat,
+  IconKeyboard,
 } from '@tabler/icons-react';
 
 interface Props {
@@ -13,8 +14,6 @@ interface Props {
   setNextLen: (d: Den) => void;
   nextDot: boolean;
   setNextDot: (v: boolean) => void;
-  insertRest: () => void;
-  clearAll: () => void;
   goToStart: () => void;
   togglePlay: () => void;
   goToEnd: () => void;
@@ -27,7 +26,7 @@ interface Props {
 
 const InsertControls: React.FC<Props> = ({
   nextLen, setNextLen, nextDot, setNextDot,
-  insertRest, clearAll, goToStart, togglePlay, goToEnd,
+  goToStart, togglePlay, goToEnd,
   loop, setLoop, playing, keyboardMode, setKeyboardMode
 }) => (
   <div className="flex flex-wrap gap-2 p-2 items-center text-xs border-b">
@@ -40,8 +39,6 @@ const InsertControls: React.FC<Props> = ({
     <label className="flex items-center gap-1">
       <input type="checkbox" checked={nextDot} onChange={e=>setNextDot(e.target.checked)} /> dotted
     </label>
-    <button className="border px-1" onClick={insertRest}>+ Pause</button>
-    <button className="border px-1" onClick={clearAll}>Clear</button>
     <div className="flex items-center gap-2 ml-2">
       <button
         className="p-1"
@@ -78,7 +75,8 @@ const InsertControls: React.FC<Props> = ({
       </button>
     </div>
     <label className="mt-2 md:ml-auto flex items-center gap-1 w-full md:w-auto justify-end">
-      <input type="checkbox" checked={keyboardMode} onChange={e=>setKeyboardMode(!!e.target.checked)} /> Keyboard mode
+      <input type="checkbox" checked={keyboardMode} onChange={e=>setKeyboardMode(!!e.target.checked)} />
+      <IconKeyboard size={20} />
       <span className="italic">QWERTYUIOP[] = C5..B5, Space=pause</span>
     </label>
   </div>

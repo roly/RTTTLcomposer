@@ -19,6 +19,7 @@ interface Props {
   playing: boolean;
   playTick: number;
   onKeyPress: (k: KeyDef) => void;
+  insertRest: () => void;
 }
 
 const PianoRoll: React.FC<Props> = ({
@@ -32,6 +33,7 @@ const PianoRoll: React.FC<Props> = ({
   playing,
   playTick,
   onKeyPress,
+  insertRest,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const gridContentRef = useRef<HTMLDivElement>(null);
@@ -55,11 +57,11 @@ const PianoRoll: React.FC<Props> = ({
   useEffect(() => {
     const t = playing ? playTick : cursorTick;
     const cont = gridRef.current;
-    const contentH = gridHeight;
+    const contentH = gridContentRef.current?.scrollHeight ?? gridHeight;
     if (cont) {
       const maxScroll = Math.max(0, contentH - cont.clientHeight);
       const target = contentH - t * pxPerTick - cont.clientHeight / 2;
-      cont.scrollTop = Math.max(0, Math.min(target, maxScroll));
+      cont.scrollTo({ top: Math.max(0, Math.min(target, maxScroll)) });
     }
   }, [playTick, cursorTick, playing, gridHeight]);
 
@@ -74,7 +76,7 @@ const PianoRoll: React.FC<Props> = ({
     <div className="flex flex-col w-full items-start">
       <div
         ref={gridRef}
-        className="w-full overflow-y-scroll h-72 md:h-[520px] flex flex-col items-start justify-end"
+        className="w-full overflow-y-auto h-72 md:h-[520px] flex flex-col items-start justify-end"
         onClick={onGridClick}
       >
         <div
@@ -143,7 +145,18 @@ const PianoRoll: React.FC<Props> = ({
             />
           </div>
         </div>
-      <Keyboard keys={keys} colWidth={colWidth} onKeyPress={onKeyPress} />
+      <div className="flex flex-col" style={{ width: gridWidth }}>
+        <Keyboard keys={keys} colWidth={colWidth} onKeyPress={onKeyPress} />
+        <button
+          className="border mt-2 py-2 w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            insertRest();
+          }}
+        >
+          + Pause
+        </button>
+      </div>
     </div>
   );
 };
