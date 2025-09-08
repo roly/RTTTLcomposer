@@ -28,6 +28,9 @@ interface Props {
   dark: boolean;
   setDark: (v: boolean) => void;
   lastSelected: NoteEvent | null;
+  reverseNotes: () => void;
+  flipHorizontal: () => void;
+  squashRests: () => void;
 }
 
 const TopControls: React.FC<Props> = ({
@@ -35,7 +38,7 @@ const TopControls: React.FC<Props> = ({
   notesLength, totalTicks, lengthSec, selectedSize,
   selectAll, deselectAll,
   copySel, cutSel, pasteClip, delSel, clearAll, clipboardLength,
-  dark, setDark, lastSelected
+  dark, setDark, lastSelected, reverseNotes, flipHorizontal, squashRests
 }) => (
   <div className="flex gap-4 p-2 items-center flex-wrap text-xs">
     <label className="flex items-center gap-1">Name
@@ -81,6 +84,9 @@ const TopControls: React.FC<Props> = ({
         <button className="border px-1" disabled={!clipboardLength} onClick={pasteClip}>Paste</button>
         <button className="border px-1" onClick={delSel}>Delete</button>
         <button className="border px-1" onClick={clearAll}>Clear</button>
+        <button className="border px-1" onClick={reverseNotes}>Reverse</button>
+        <button className="border px-1" onClick={flipHorizontal}>Flip</button>
+        <button className="border px-1" onClick={squashRests}>Squash Rests</button>
       </div>
     </div>
     <button
