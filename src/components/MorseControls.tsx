@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Den, NEXT_DENS, SCALES, NoteEvent } from '../music';
 import { morseToEvents } from '../morse';
+import { parseRTTTL } from '../rtttl';
 
 interface Props {
   onAdd: (events: NoteEvent[]) => void;
@@ -25,9 +26,21 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
   const scaleIndex = useRef(0);
 
   function addMorse() {
-    const scaleNotes = scale === 'Custom'
-      ? customScale.split(',').map(s => s.trim()).filter(Boolean)
-      : SCALES[scale];
+    let scaleNotes: string[];
+    if (scale === 'Custom') {
+      if (customScale.includes(':')) {
+        try {
+          const song = parseRTTTL(customScale, dotLen, morseOct, 120);
+          scaleNotes = song.notes.filter(n => !n.isRest && n.note).map(n => `${n.note}${n.octave}`);
+        } catch {
+          scaleNotes = customScale.split(',').map(s => s.trim()).filter(Boolean);
+        }
+      } else {
+        scaleNotes = customScale.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    } else {
+      scaleNotes = SCALES[scale];
+    }
     const { events, nextIndex } = morseToEvents(morseText, {
       scaleNotes,
       morseOct,
@@ -97,7 +110,7 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
         </label>
         {scale === 'Custom' && (
           <label className="col-span-2 flex flex-col gap-1">Notes
-            <textarea className="border p-1 w-full h-24" value={customScale} onChange={e=>setCustomScale(e.target.value)} placeholder="C,C#,D" />
+            <textarea className="border p-1 w-full h-24" value={customScale} onChange={e=>setCustomScale(e.target.value)} placeholder="C4,C#4,D5 or RTTTL" />
           </label>
         )}
         <label className="col-span-2 flex items-center gap-1">

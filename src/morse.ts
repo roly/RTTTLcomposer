@@ -6,7 +6,7 @@ export const MORSE: Record<string,string> = {
 };
 
 export interface MorseOptions {
-  scaleNotes: string[];
+  scaleNotes: string[]; // notes may include octave eg "C#4"
   morseOct: number;
   dotLen: Den;
   dotDot: boolean;
@@ -40,29 +40,35 @@ export function morseToEvents(text: string, opts: MorseOptions): { events: NoteE
     if (!code) continue;
     if (opts.scaleBySymbol) {
       for (let j = 0; j < code.length; j++) {
-        const noteName = scaleNotes[idx % scaleNotes.length];
-        const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === opts.morseOct);
+        const raw = scaleNotes[idx % scaleNotes.length];
+        const m = raw.match(/^([A-G]#?)(\d+)?$/i);
+        const noteName = m ? m[1].toUpperCase() : raw;
+        const oct = m && m[2] ? parseInt(m[2]) : opts.morseOct;
+        const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === oct);
         idx++;
         const sym = code[j];
         if (sym === '.') {
-          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dotLen, dotted: opts.dotDot });
+          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: oct, durationDen: opts.dotLen, dotted: opts.dotDot });
         } else {
-          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dashLen, dotted: opts.dashDot });
+          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: oct, durationDen: opts.dashLen, dotted: opts.dashDot });
         }
         if (j < code.length - 1 && opts.symGap !== 'None') {
           events.push({ id: crypto.randomUUID(), isRest: true, durationDen: opts.symGap, dotted: opts.symDot });
         }
       }
     } else {
-      const noteName = scaleNotes[idx % scaleNotes.length];
-      const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === opts.morseOct);
+      const raw = scaleNotes[idx % scaleNotes.length];
+      const m = raw.match(/^([A-G]#?)(\d+)?$/i);
+      const noteName = m ? m[1].toUpperCase() : raw;
+      const oct = m && m[2] ? parseInt(m[2]) : opts.morseOct;
+      const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === oct);
       idx++;
       for (let j = 0; j < code.length; j++) {
         const sym = code[j];
         if (sym === '.') {
-          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dotLen, dotted: opts.dotDot });
+          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: oct, durationDen: opts.dotLen, dotted: opts.dotDot });
         } else {
-          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dashLen, dotted: opts.dashDot });
+          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: oct, durationDen: opts.dashLen, dotted: opts.dashDot });
         }
         if (j < code.length - 1 && opts.symGap !== 'None') {
           events.push({ id: crypto.randomUUID(), isRest: true, durationDen: opts.symGap, dotted: opts.symDot });
