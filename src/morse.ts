@@ -19,6 +19,7 @@ export interface MorseOptions {
   wordGap: Den | 'None';
   wordDot: boolean;
   startIndex: number;
+  scaleBySymbol: boolean;
 }
 
 export function morseToEvents(text: string, opts: MorseOptions): { events: NoteEvent[]; nextIndex: number } {
@@ -37,18 +38,35 @@ export function morseToEvents(text: string, opts: MorseOptions): { events: NoteE
     }
     const code = MORSE[ch];
     if (!code) continue;
-    const noteName = scaleNotes[idx % scaleNotes.length];
-    const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === opts.morseOct);
-    idx++;
-    for (let j = 0; j < code.length; j++) {
-      const sym = code[j];
-      if (sym === '.') {
-        events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dotLen, dotted: opts.dotDot });
-      } else {
-        events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dashLen, dotted: opts.dashDot });
+    if (opts.scaleBySymbol) {
+      for (let j = 0; j < code.length; j++) {
+        const noteName = scaleNotes[idx % scaleNotes.length];
+        const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === opts.morseOct);
+        idx++;
+        const sym = code[j];
+        if (sym === '.') {
+          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dotLen, dotted: opts.dotDot });
+        } else {
+          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dashLen, dotted: opts.dashDot });
+        }
+        if (j < code.length - 1 && opts.symGap !== 'None') {
+          events.push({ id: crypto.randomUUID(), isRest: true, durationDen: opts.symGap, dotted: opts.symDot });
+        }
       }
-      if (j < code.length - 1 && opts.symGap !== 'None') {
-        events.push({ id: crypto.randomUUID(), isRest: true, durationDen: opts.symGap, dotted: opts.symDot });
+    } else {
+      const noteName = scaleNotes[idx % scaleNotes.length];
+      const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === opts.morseOct);
+      idx++;
+      for (let j = 0; j < code.length; j++) {
+        const sym = code[j];
+        if (sym === '.') {
+          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dotLen, dotted: opts.dotDot });
+        } else {
+          events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: opts.morseOct, durationDen: opts.dashLen, dotted: opts.dashDot });
+        }
+        if (j < code.length - 1 && opts.symGap !== 'None') {
+          events.push({ id: crypto.randomUUID(), isRest: true, durationDen: opts.symGap, dotted: opts.symDot });
+        }
       }
     }
     if (i < up.length - 1) {
