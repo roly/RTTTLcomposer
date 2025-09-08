@@ -56,11 +56,19 @@ const PianoRoll: React.FC<Props> = ({
   const gridHeight = Math.max(containerHeight, totalTicks * pxPerTick + 40);
 
   useEffect(() => {
-    // Keep the current cursor or play position in view by scrolling the
-    // playhead line into the center of the grid container. This provides a
-    // smooth auto‑scrolling behaviour as notes are entered or played back.
-    if (playheadRef.current) {
-      playheadRef.current.scrollIntoView({ block: 'center', inline: 'nearest' });
+    // Keep the current cursor or play position in view by centering the
+    // playhead line within the grid container without scrolling the entire
+    // document. Compute the offset relative to the grid and update the
+    // container's scroll position manually.
+    const cont = gridRef.current;
+    const playhead = playheadRef.current;
+    if (cont && playhead) {
+      const contRect = cont.getBoundingClientRect();
+      const headRect = playhead.getBoundingClientRect();
+      const offset = headRect.top - contRect.top;
+      const target = cont.scrollTop + offset - cont.clientHeight / 2;
+      const maxScroll = cont.scrollHeight - cont.clientHeight;
+      cont.scrollTop = Math.max(0, Math.min(target, maxScroll));
     }
   }, [playTick, cursorTick, playing, gridHeight]);
 
