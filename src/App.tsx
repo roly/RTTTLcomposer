@@ -218,15 +218,41 @@ const App:React.FC = () => {
       for(let i=0;i<prev.length;i++){
         const n = prev[i];
         if(!n.isRest){ res.push(n); continue; }
-        let max = n;
-        let maxTicks = ticksFromDen(n.durationDen,n.dotted);
-        let j=i+1;
+        // sum ticks for consecutive rests
+        let totalTicks = 0;
+        let j = i;
         while(j<prev.length && prev[j].isRest){
-          const t = ticksFromDen(prev[j].durationDen,prev[j].dotted);
-          if(t>maxTicks){ max = prev[j]; maxTicks = t; }
+          totalTicks += ticksFromDen(prev[j].durationDen, prev[j].dotted);
           j++;
         }
-        res.push({...max});
+        // convert summed ticks back into note durations
+        const states = [...DUR_STATES]
+          .map(s => ({...s, ticks: ticksFromDen(s.den as Den, s.dotted)}))
+          .sort((a,b) => b.ticks - a.ticks);
+        const memo = new Map<number, {den:Den,dotted?:boolean}[] | null>();
+        function build(rem:number): {den:Den,dotted?:boolean}[] | null {
+          if(rem===0) return [];
+          if(memo.has(rem)) return memo.get(rem)!;
+          for(const st of states){
+            if(st.ticks <= rem){
+              const tail = build(rem - st.ticks);
+              if(tail){
+                const resArr = [{den:st.den as Den, dotted:st.dotted}, ...tail];
+                memo.set(rem,resArr);
+                return resArr;
+              }
+            }
+          }
+          memo.set(rem,null);
+          return null;
+        }
+        const combo = build(totalTicks) ?? [];
+        if(combo.length){
+          combo.forEach(c => res.push({id:crypto.randomUUID(), isRest:true, durationDen:c.den, dotted:c.dotted}));
+        }else{
+          // fallback: keep original rests if conversion fails
+          for(let k=i;k<j;k++) res.push(prev[k]);
+        }
         i = j-1;
       }
       return res;
