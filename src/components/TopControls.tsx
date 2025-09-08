@@ -17,6 +17,8 @@ interface Props {
   totalTicks: number;
   lengthSec: number;
   selectedSize: number;
+  selectAll: () => void;
+  deselectAll: () => void;
   copySel: () => void;
   cutSel: () => void;
   pasteClip: () => void;
@@ -31,6 +33,7 @@ interface Props {
 const TopControls: React.FC<Props> = ({
   name, setName, bpm, setBpm, defDen, setDefDen, defOct, setDefOct,
   notesLength, totalTicks, lengthSec, selectedSize,
+  selectAll, deselectAll,
   copySel, cutSel, pasteClip, delSel, clearAll, clipboardLength,
   dark, setDark, lastSelected
 }) => (
@@ -71,6 +74,8 @@ const TopControls: React.FC<Props> = ({
         )}
       </div>
       <div className="flex gap-1 ml-2">
+        <button className="border px-1" onClick={selectAll}>Select All</button>
+        <button className="border px-1" onClick={deselectAll} disabled={!selectedSize}>Deselect</button>
         <button className="border px-1" onClick={copySel}>Copy</button>
         <button className="border px-1" onClick={cutSel}>Cut</button>
         <button className="border px-1" disabled={!clipboardLength} onClick={pasteClip}>Paste</button>

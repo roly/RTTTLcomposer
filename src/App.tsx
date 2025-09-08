@@ -123,6 +123,25 @@ const App:React.FC = () => {
     setLastSelected(last);
   }
 
+  function setSelection(ids:string[]){
+    const s = new Set(ids);
+    setSelected(s);
+    let last: NoteEvent | null = null;
+    for(let i=notes.length-1;i>=0;i--){
+      const n = notes[i];
+      if(s.has(n.id)){ last = n; break; }
+    }
+    setLastSelected(last);
+  }
+
+  function selectAll(){
+    setSelection(notes.map(n=>n.id));
+  }
+
+  function deselectAll(){
+    setSelection([]);
+  }
+
   // Copy/Cut/Paste/Delete
   function copySel(){
     const items = notes.filter((n: NoteEvent)=>selected.has(n.id)).map(({id,...rest}: NoteEvent & {id: string})=>rest);
@@ -164,6 +183,11 @@ const App:React.FC = () => {
         }
       }
       if(e.key==='Enter' && e.shiftKey){ e.preventDefault(); togglePlay(); }
+      if((e.key==='a'||e.key==='A') && (e.metaKey||e.ctrlKey)){
+        e.preventDefault();
+        if(e.shiftKey){ deselectAll(); } else { selectAll(); }
+      }
+      if(e.key==='Escape'){ deselectAll(); }
       if(selected.size){
         if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
           const d = e.key==='ArrowLeft'? -1 : 1;
@@ -204,7 +228,7 @@ const App:React.FC = () => {
     }
     window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);
-  },[selected,notes,cursorTick,nextLen,nextDot,keyboardMode,clipboard,noteWithTiming,totalTicks]);
+  },[selected,notes,cursorTick,nextLen,nextDot,keyboardMode,clipboard,noteWithTiming,totalTicks,selectAll,deselectAll]);
 
   // Playback
   const timeoutsRef = useRef<number[]>([]);
@@ -294,6 +318,8 @@ const App:React.FC = () => {
           totalTicks={totalTicks}
           lengthSec={totalTicks*tickSec}
           selectedSize={selected.size}
+          selectAll={selectAll}
+          deselectAll={deselectAll}
           copySel={copySel}
           cutSel={cutSel}
           pasteClip={pasteClip}
@@ -312,6 +338,7 @@ const App:React.FC = () => {
         totalTicks={totalTicks}
         selected={selected}
         toggleSelect={toggleSelect}
+        selectRange={setSelection}
         cursorTick={cursorTick}
         setCursorTick={updateCursor}
         playing={playing}
