@@ -43,9 +43,11 @@ export function morseToEvents(text: string, opts: MorseOptions): { events: NoteE
         const raw = scaleNotes[idx % scaleNotes.length];
         const m = raw.match(/^([A-G]#?)(\d+)?$/i);
         const noteName = m ? m[1].toUpperCase() : raw;
-        const oct = m && m[2] ? parseInt(m[2]) : opts.morseOct;
+        let oct = m && m[2] ? parseInt(m[2]) : opts.morseOct;
+        oct = Math.min(7, Math.max(4, oct));
         const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === oct);
         idx++;
+        if (keyIndex === -1) continue;
         const sym = code[j];
         if (sym === '.') {
           events.push({ id: crypto.randomUUID(), isRest: false, keyIndex, note: noteName, octave: oct, durationDen: opts.dotLen, dotted: opts.dotDot });
@@ -60,9 +62,11 @@ export function morseToEvents(text: string, opts: MorseOptions): { events: NoteE
       const raw = scaleNotes[idx % scaleNotes.length];
       const m = raw.match(/^([A-G]#?)(\d+)?$/i);
       const noteName = m ? m[1].toUpperCase() : raw;
-      const oct = m && m[2] ? parseInt(m[2]) : opts.morseOct;
+      let oct = m && m[2] ? parseInt(m[2]) : opts.morseOct;
+      oct = Math.min(7, Math.max(4, oct));
       const keyIndex = KEYS.findIndex(k => k.name === noteName && k.octave === oct);
       idx++;
+      if (keyIndex === -1) continue;
       for (let j = 0; j < code.length; j++) {
         const sym = code[j];
         if (sym === '.') {
