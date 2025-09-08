@@ -21,6 +21,7 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
   const [scale, setScale] = useState('Custom');
   const [customScale, setCustomScale] = useState('C');
   const [morseOct, setMorseOct] = useState(4);
+  const [scaleBySymbol, setScaleBySymbol] = useState(false);
   const scaleIndex = useRef(0);
 
   function addMorse() {
@@ -40,7 +41,8 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
       letDot,
       wordGap,
       wordDot,
-      startIndex: scaleIndex.current
+      startIndex: scaleIndex.current,
+      scaleBySymbol
     });
     onAdd(events);
     scaleIndex.current = nextIndex;
@@ -84,6 +86,9 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
           </select>
           <input type="checkbox" checked={wordDot} onChange={e=>setWordDot(e.target.checked)} /> dotted
         </label>
+        <label className="flex items-center gap-1">Octave
+          <input className="border w-12" type="number" min={4} max={7} value={morseOct} onChange={e=>setMorseOct(parseInt(e.target.value))} />
+        </label>
         <label className="col-span-2 flex items-center gap-1">Scale
           <select className="border" value={scale} onChange={e=>setScale(e.target.value)}>
             {Object.keys(SCALES).map(s => <option key={s} value={s}>{s}</option>)}
@@ -91,12 +96,12 @@ const MorseControls: React.FC<Props> = ({ onAdd }) => {
           </select>
         </label>
         {scale === 'Custom' && (
-          <label className="col-span-2 flex items-center gap-1">Notes
-            <input className="border" value={customScale} onChange={e=>setCustomScale(e.target.value)} placeholder="C,C#,D" />
+          <label className="col-span-2 flex flex-col gap-1">Notes
+            <textarea className="border p-1 w-full h-24" value={customScale} onChange={e=>setCustomScale(e.target.value)} placeholder="C,C#,D" />
           </label>
         )}
-        <label className="col-span-2 flex items-center gap-1">Octave
-          <input className="border w-12" type="number" min={4} max={7} value={morseOct} onChange={e=>setMorseOct(parseInt(e.target.value))} />
+        <label className="col-span-2 flex items-center gap-1">
+          <input type="checkbox" checked={scaleBySymbol} onChange={e=>setScaleBySymbol(e.target.checked)} /> Scale per symbol
         </label>
       </div>
       <button className="border px-2 mt-2" onClick={addMorse}>Add Morse</button>
