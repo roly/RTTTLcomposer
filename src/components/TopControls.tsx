@@ -1,6 +1,19 @@
 import React from 'react';
 import { Den, TEMPOS, DEFAULT_DENS, NoteEvent } from '../music';
-import { IconSun, IconMoon } from '@tabler/icons-react';
+import {
+  IconSun,
+  IconMoon,
+  IconSelectAll,
+  IconDeselect,
+  IconCopy,
+  IconCut,
+  IconClipboardPlus,
+  IconTrash,
+  IconClearAll,
+  IconArrowsLeftRight,
+  IconFlipHorizontal,
+  IconArrowMerge,
+} from '@tabler/icons-react';
 
 const OCTAVES = [4,5,6,7];
 
@@ -76,17 +89,89 @@ const TopControls: React.FC<Props> = ({
           </span>
         )}
       </div>
-      <div className="flex gap-1 ml-2">
-        <button className="border px-1" onClick={selectAll}>Select All</button>
-        <button className="border px-1" onClick={deselectAll} disabled={!selectedSize}>Deselect</button>
-        <button className="border px-1" onClick={copySel}>Copy</button>
-        <button className="border px-1" onClick={cutSel}>Cut</button>
-        <button className="border px-1" disabled={!clipboardLength} onClick={pasteClip}>Paste</button>
-        <button className="border px-1" onClick={delSel}>Delete</button>
-        <button className="border px-1" onClick={clearAll}>Clear</button>
-        <button className="border px-1" onClick={reverseNotes}>Reverse</button>
-        <button className="border px-1" onClick={flipHorizontal}>Flip</button>
-        <button className="border px-1" onClick={squashRests}>Squash Rests</button>
+      <div className="flex gap-1 ml-2 flex-wrap">
+        <button
+          className="border p-1"
+          onClick={selectAll}
+          aria-label="Select all"
+          title="Select all"
+        >
+          <IconSelectAll size={16} />
+        </button>
+        <button
+          className="border p-1"
+          onClick={deselectAll}
+          disabled={!selectedSize}
+          aria-label="Deselect"
+          title="Deselect"
+        >
+          <IconDeselect size={16} />
+        </button>
+        <button
+          className="border p-1"
+          onClick={copySel}
+          aria-label="Copy"
+          title="Copy"
+        >
+          <IconCopy size={16} />
+        </button>
+        <button
+          className="border p-1"
+          onClick={cutSel}
+          aria-label="Cut"
+          title="Cut"
+        >
+          <IconCut size={16} />
+        </button>
+        <button
+          className="border p-1"
+          disabled={!clipboardLength}
+          onClick={pasteClip}
+          aria-label="Paste"
+          title="Paste"
+        >
+          <IconClipboardPlus size={16} />
+        </button>
+        <button
+          className="border p-1"
+          onClick={delSel}
+          aria-label="Delete"
+          title="Delete"
+        >
+          <IconTrash size={16} />
+        </button>
+        <button
+          className="border p-1"
+          onClick={clearAll}
+          aria-label="Clear all"
+          title="Clear all"
+        >
+          <IconClearAll size={16} />
+        </button>
+        <button
+          className="border p-1"
+          onClick={reverseNotes}
+          aria-label="Reverse"
+          title="Reverse"
+        >
+          <IconArrowsLeftRight size={16} />
+        </button>
+        <button
+          className="border p-1"
+          onClick={flipHorizontal}
+          aria-label="Flip horizontal"
+          title="Flip horizontal"
+        >
+          <IconFlipHorizontal size={16} />
+        </button>
+        <button
+          className="border p-1"
+          onClick={squashRests}
+          aria-label="Squash rests"
+          title="Squash rests"
+        >
+          <IconArrowMerge size={16} />
+        </button>
       </div>
     </div>
     <button
