@@ -8,18 +8,18 @@ interface Props {
 
 const MorseControls: React.FC<Props> = ({ onAdd }) => {
   const [morseText, setMorseText] = useState('');
-  const [dotLen, setDotLen] = useState<Den>(8);
+  const [dotLen, setDotLen] = useState<Den>(32);
   const [dotDot, setDotDot] = useState(false);
-  const [dashLen, setDashLen] = useState<Den>(4);
+  const [dashLen, setDashLen] = useState<Den>(16);
   const [dashDot, setDashDot] = useState(true);
-  const [symGap, setSymGap] = useState<Den | 'None'>(8);
+  const [symGap, setSymGap] = useState<Den | 'None'>(32);
   const [symDot, setSymDot] = useState(false);
-  const [letGap, setLetGap] = useState<Den | 'None'>(4);
-  const [letDot, setLetDot] = useState(false);
-  const [wordGap, setWordGap] = useState<Den | 'None'>(2);
-  const [wordDot, setWordDot] = useState(false);
-  const [scale, setScale] = useState('C Major');
-  const [customScale, setCustomScale] = useState('');
+  const [letGap, setLetGap] = useState<Den | 'None'>(16);
+  const [letDot, setLetDot] = useState(true);
+  const [wordGap, setWordGap] = useState<Den | 'None'>(8);
+  const [wordDot, setWordDot] = useState(true);
+  const [scale, setScale] = useState('Custom');
+  const [customScale, setCustomScale] = useState('C');
   const [morseOct, setMorseOct] = useState(4);
   const scaleIndex = useRef(0);
 
