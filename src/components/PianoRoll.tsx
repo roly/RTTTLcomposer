@@ -14,6 +14,7 @@ interface Props {
   totalTicks: number;
   selected: Set<string>;
   toggleSelect: (id: string) => void;
+  selectRange: (ids: string[]) => void;
   cursorTick: number;
   setCursorTick: (tick: number) => void;
   playing: boolean;
@@ -28,6 +29,7 @@ const PianoRoll: React.FC<Props> = ({
   totalTicks,
   selected,
   toggleSelect,
+  selectRange,
   cursorTick,
   setCursorTick,
   playing,
@@ -61,11 +63,59 @@ const PianoRoll: React.FC<Props> = ({
     );
   }, [playTick, cursorTick, playing, gridHeight]);
 
-  function onGridClick(e: React.MouseEvent) {
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [dragRect, setDragRect] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  function onGridMouseDown(e: React.MouseEvent) {
+    if (e.button !== 0) return;
     const rect = gridRef.current!.getBoundingClientRect();
+    const x = e.clientX - rect.left + gridRef.current!.scrollLeft;
     const y = e.clientY - rect.top + gridRef.current!.scrollTop;
-    const tick = Math.max(0, Math.round(y / pxPerTick));
-    setCursorTick(tick);
+    setDragStart({ x, y });
+    setDragRect({ x, y, width: 0, height: 0 });
+  }
+
+  function onGridMouseMove(e: React.MouseEvent) {
+    if (!dragStart) return;
+    const rect = gridRef.current!.getBoundingClientRect();
+    const x = e.clientX - rect.left + gridRef.current!.scrollLeft;
+    const y = e.clientY - rect.top + gridRef.current!.scrollTop;
+    const nx = Math.min(x, dragStart.x);
+    const ny = Math.min(y, dragStart.y);
+    const w = Math.abs(x - dragStart.x);
+    const h = Math.abs(y - dragStart.y);
+    setDragRect({ x: nx, y: ny, width: w, height: h });
+  }
+
+  function onGridMouseUp() {
+    if (dragStart && dragRect && (dragRect.width > 2 || dragRect.height > 2)) {
+      const ids: string[] = [];
+      noteWithTiming.forEach((n) => {
+        const left = n.ev.isRest ? 0 : n.ev.keyIndex! * colWidth + 1;
+        const width = n.ev.isRest ? gridWidth : colWidth - 2;
+        const top = n.startTick * pxPerTick;
+        const height = n.durTicks * pxPerTick;
+        if (
+          left < dragRect.x + dragRect.width &&
+          left + width > dragRect.x &&
+          top < dragRect.y + dragRect.height &&
+          top + height > dragRect.y
+        ) {
+          ids.push(n.ev.id);
+        }
+      });
+      selectRange(ids);
+    } else if (dragStart) {
+      const tick = Math.max(0, Math.round(dragStart.y / pxPerTick));
+      setCursorTick(tick);
+    }
+    setDragStart(null);
+    setDragRect(null);
   }
 
   return (
@@ -73,10 +123,12 @@ const PianoRoll: React.FC<Props> = ({
       <div
         ref={gridRef}
         className="w-full overflow-y-auto h-72 md:h-[520px] relative"
-        onClick={onGridClick}
+        onMouseDown={onGridMouseDown}
+        onMouseMove={onGridMouseMove}
+        onMouseUp={onGridMouseUp}
       >
         <div
-          className="relative"
+          className="relative select-none"
           style={{ width: gridWidth, height: gridHeight }}
         >
           {Array.from({ length: keys.length }).map((_, i) => (
@@ -99,6 +151,7 @@ const PianoRoll: React.FC<Props> = ({
             n.ev.isRest ? (
               <div
                 key={n.ev.id}
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleSelect(n.ev.id);
@@ -116,6 +169,7 @@ const PianoRoll: React.FC<Props> = ({
             ) : (
               <div
                 key={n.ev.id}
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleSelect(n.ev.id);
@@ -136,6 +190,17 @@ const PianoRoll: React.FC<Props> = ({
             className="absolute left-0 right-0 h-0.5 bg-red-500 pointer-events-none"
             style={{ top: (playing ? playTick : cursorTick) * pxPerTick }}
           />
+          {dragRect && (
+            <div
+              className="absolute border-2 border-blue-400 bg-blue-400/20 pointer-events-none"
+              style={{
+                left: dragRect.x,
+                top: dragRect.y,
+                width: dragRect.width,
+                height: dragRect.height,
+              }}
+            />
+          )}
         </div>
       </div>
       <div className="flex flex-col" style={{ width: gridWidth }}>
