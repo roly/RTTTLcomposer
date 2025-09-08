@@ -198,8 +198,8 @@ const App:React.FC = () => {
         if((e.key==='x'||e.key==='X') && (e.metaKey||e.ctrlKey)){ e.preventDefault(); cutSel(); }
         if((e.key==='v'||e.key==='V') && (e.metaKey||e.ctrlKey)){ e.preventDefault(); pasteClip(); }
       } else {
-        if(e.key==='ArrowUp'){ e.preventDefault(); const base = cursorRef.current ?? 0; const nt = Math.min(base+ticksFromDen(nextLen,nextDot),totalTicks); cursorRef.current = nt; setCursorTick(nt); }
-        if(e.key==='ArrowDown'){ e.preventDefault(); const base = cursorRef.current ?? 0; const nt = Math.max(0,base-ticksFromDen(nextLen,nextDot)); cursorRef.current = nt; setCursorTick(nt); }
+        if(e.key==='ArrowUp'){ e.preventDefault(); const base = cursorRef.current ?? 0; const nt = Math.max(0,base-ticksFromDen(nextLen,nextDot)); cursorRef.current = nt; setCursorTick(nt); }
+        if(e.key==='ArrowDown'){ e.preventDefault(); const base = cursorRef.current ?? 0; const nt = Math.min(base+ticksFromDen(nextLen,nextDot),totalTicks); cursorRef.current = nt; setCursorTick(nt); }
       }
     }
     window.addEventListener('keydown',onKey);
