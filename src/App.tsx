@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import { Den, NoteEvent, KeyDef, KEYS, TICKS_PER_QUARTER, DUR_STATES, ticksFromDen } from "./music";
 import { playTone, getAudioContext } from "./sound";
@@ -170,6 +170,97 @@ const App:React.FC = () => {
     setNotes(newNotes); cursorRef.current = t; setCursorTick(t);
   }
 
+  const moveSelectedPitch = useCallback((d:number)=>{
+    setNotes(prev => {
+      const newNotes = prev.map((n: NoteEvent)=>{
+        if(!selected.has(n.id) || n.isRest) return n;
+        const ni = n.keyIndex! + d;
+        if(ni<0 || ni>=KEYS.length) return n;
+        return {...n,keyIndex:ni,note:KEYS[ni].name,octave:KEYS[ni].octave};
+      });
+      return newNotes.every((n,i)=>!selected.has(prev[i].id) || prev[i].isRest || n.keyIndex!==prev[i].keyIndex) ? newNotes : prev;
+    });
+  },[selected]);
+
+  const adjustSelectedDuration = useCallback((dir:number)=>{
+    setNotes(prev => {
+      const newNotes = prev.map((n: NoteEvent)=>{
+        if(!selected.has(n.id)) return n;
+        const idx = DUR_STATES.findIndex(d=>d.den===n.durationDen && !!d.dotted===!!n.dotted);
+        const ni = idx + dir;
+        if(ni<0 || ni>=DUR_STATES.length) return n;
+        const st = DUR_STATES[ni];
+        return {...n,durationDen:st.den as Den,dotted:st.dotted};
+      });
+      return newNotes.every((n,i)=>!selected.has(prev[i].id) || n.durationDen!==prev[i].durationDen || n.dotted!==prev[i].dotted) ? newNotes : prev;
+    });
+  },[selected]);
+
+  function reverseNotes(){
+    setNotes(prev => [...prev].reverse());
+    setSelected(new Set());
+    setLastSelected(null);
+  }
+
+  function flipHorizontal(){
+    setNotes(prev => prev.map(n => {
+      if(n.isRest) return n;
+      const ni = KEYS.length - 1 - n.keyIndex!;
+      return {...n,keyIndex:ni,note:KEYS[ni].name,octave:KEYS[ni].octave};
+    }));
+    setSelected(new Set());
+    setLastSelected(null);
+  }
+
+  function squashRests(){
+    setNotes(prev => {
+      const res: NoteEvent[] = [];
+      for(let i=0;i<prev.length;i++){
+        const n = prev[i];
+        if(!n.isRest){ res.push(n); continue; }
+        // sum ticks for consecutive rests
+        let totalTicks = 0;
+        let j = i;
+        while(j<prev.length && prev[j].isRest){
+          totalTicks += ticksFromDen(prev[j].durationDen, prev[j].dotted);
+          j++;
+        }
+        // convert summed ticks back into note durations
+        const states = [...DUR_STATES]
+          .map(s => ({...s, ticks: ticksFromDen(s.den as Den, s.dotted)}))
+          .sort((a,b) => b.ticks - a.ticks);
+        const memo = new Map<number, {den:Den,dotted?:boolean}[] | null>();
+        function build(rem:number): {den:Den,dotted?:boolean}[] | null {
+          if(rem===0) return [];
+          if(memo.has(rem)) return memo.get(rem)!;
+          for(const st of states){
+            if(st.ticks <= rem){
+              const tail = build(rem - st.ticks);
+              if(tail){
+                const resArr = [{den:st.den as Den, dotted:st.dotted}, ...tail];
+                memo.set(rem,resArr);
+                return resArr;
+              }
+            }
+          }
+          memo.set(rem,null);
+          return null;
+        }
+        const combo = build(totalTicks) ?? [];
+        if(combo.length){
+          combo.forEach(c => res.push({id:crypto.randomUUID(), isRest:true, durationDen:c.den, dotted:c.dotted}));
+        }else{
+          // fallback: keep original rests if conversion fails
+          for(let k=i;k<j;k++) res.push(prev[k]);
+        }
+        i = j-1;
+      }
+      return res;
+    });
+    setSelected(new Set());
+    setLastSelected(null);
+  }
+
   // Arrow key etc
   useEffect(()=>{
     function onKey(e: KeyboardEvent){
@@ -192,34 +283,10 @@ const App:React.FC = () => {
       }
       if(e.key==='Escape'){ deselectAll(); }
       if(selected.size){
-        if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
-          const d = e.key==='ArrowLeft'? -1 : 1;
-          const newNotes = notes.map((n: NoteEvent)=>{
-            if(!selected.has(n.id) || n.isRest) return n;
-            const ni = n.keyIndex! + d; if(ni<0 || ni>=KEYS.length) return n;
-            return {...n,keyIndex:ni,note:KEYS[ni].name,octave:KEYS[ni].octave};
-          });
-          // veto if any went out of range (ignore rests)
-          if(newNotes.every((n: NoteEvent, i: number)=>!selected.has(notes[i].id) || notes[i].isRest || (n.keyIndex!==notes[i].keyIndex))) setNotes(newNotes);
-        }
-        if(e.key==='ArrowUp' && e.shiftKey){
-          const newNotes = notes.map((n: NoteEvent)=>{
-            if(!selected.has(n.id)) return n;
-            const idx = DUR_STATES.findIndex(d=>d.den===n.durationDen && !!d.dotted===!!n.dotted);
-            if(idx < DUR_STATES.length-1){ const st = DUR_STATES[idx+1]; return {...n,durationDen:st.den as Den,dotted:st.dotted}; }
-            return n;
-          });
-          if(newNotes.every((n: NoteEvent, i: number)=>!selected.has(notes[i].id) || n.durationDen!==notes[i].durationDen || n.dotted!==notes[i].dotted)) setNotes(newNotes);
-        }
-        if(e.key==='ArrowDown' && e.shiftKey){
-          const newNotes = notes.map((n: NoteEvent)=>{
-            if(!selected.has(n.id)) return n;
-            const idx = DUR_STATES.findIndex(d=>d.den===n.durationDen && !!d.dotted===!!n.dotted);
-            if(idx>0){ const st = DUR_STATES[idx-1]; return {...n,durationDen:st.den as Den,dotted:st.dotted}; }
-            return n;
-          });
-          if(newNotes.every((n: NoteEvent, i: number)=>!selected.has(notes[i].id) || n.durationDen!==notes[i].durationDen || n.dotted!==notes[i].dotted)) setNotes(newNotes);
-        }
+        if(e.key==='ArrowLeft'){ moveSelectedPitch(-1); }
+        if(e.key==='ArrowRight'){ moveSelectedPitch(1); }
+        if(e.key==='ArrowUp' && e.shiftKey){ adjustSelectedDuration(1); }
+        if(e.key==='ArrowDown' && e.shiftKey){ adjustSelectedDuration(-1); }
         if(e.key==='Delete' || e.key==='Backspace'){ delSel(); }
         if((e.key==='c'||e.key==='C') && (e.metaKey||e.ctrlKey)){ e.preventDefault(); copySel(); }
         if((e.key==='x'||e.key==='X') && (e.metaKey||e.ctrlKey)){ e.preventDefault(); cutSel(); }
@@ -231,7 +298,7 @@ const App:React.FC = () => {
     }
     window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);
-  },[selected,notes,cursorTick,nextLen,nextDot,keyboardMode,clipboard,noteWithTiming,totalTicks,selectAll,deselectAll]);
+  },[selected,notes,cursorTick,nextLen,nextDot,keyboardMode,clipboard,noteWithTiming,totalTicks,selectAll,deselectAll,moveSelectedPitch,adjustSelectedDuration]);
 
   // Playback
   const timeoutsRef = useRef<number[]>([]);
@@ -351,6 +418,9 @@ const App:React.FC = () => {
           dark={dark}
           setDark={setDark}
           lastSelected={lastSelected}
+          reverseNotes={reverseNotes}
+          flipHorizontal={flipHorizontal}
+          squashRests={squashRests}
         />
 
       {/* Piano roll */}
@@ -383,6 +453,9 @@ const App:React.FC = () => {
         playing={playing}
         keyboardMode={keyboardMode}
         setKeyboardMode={setKeyboardMode}
+        selectedSize={selected.size}
+        moveSelectedPitch={moveSelectedPitch}
+        adjustSelectedDuration={adjustSelectedDuration}
       />
 
       {/* Bottom panels */}

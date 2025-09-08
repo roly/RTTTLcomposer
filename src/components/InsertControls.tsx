@@ -7,6 +7,10 @@ import {
   IconPlayerSkipForward,
   IconRepeat,
   IconKeyboard,
+  IconArrowLeft,
+  IconArrowRight,
+  IconArrowUp,
+  IconArrowDown,
 } from '@tabler/icons-react';
 
 interface Props {
@@ -22,12 +26,16 @@ interface Props {
   playing: boolean;
   keyboardMode: boolean;
   setKeyboardMode: (v: boolean) => void;
+  selectedSize: number;
+  moveSelectedPitch: (d:number) => void;
+  adjustSelectedDuration: (d:number) => void;
 }
 
 const InsertControls: React.FC<Props> = ({
   nextLen, setNextLen, nextDot, setNextDot,
   goToStart, togglePlay, goToEnd,
-  loop, setLoop, playing, keyboardMode, setKeyboardMode
+  loop, setLoop, playing, keyboardMode, setKeyboardMode,
+  selectedSize, moveSelectedPitch, adjustSelectedDuration
 }) => (
   <div className="flex flex-wrap gap-2 p-2 items-center text-xs border-b">
     <label>
@@ -79,6 +87,24 @@ const InsertControls: React.FC<Props> = ({
       <IconKeyboard size={20} />
       <span className="italic">QWERTYUIOP[] = C5..B5, Space=pause</span>
     </label>
+    {selectedSize > 0 && (
+      <div className="flex w-full justify-center gap-2 mt-2 md:hidden">
+        <button className="p-2 border rounded" onClick={()=>moveSelectedPitch(-1)} aria-label="Lower pitch">
+          <IconArrowLeft size={24} />
+        </button>
+        <div className="flex flex-col gap-2">
+          <button className="p-2 border rounded" onClick={()=>adjustSelectedDuration(1)} aria-label="Increase duration">
+            <IconArrowUp size={24} />
+          </button>
+          <button className="p-2 border rounded" onClick={()=>adjustSelectedDuration(-1)} aria-label="Decrease duration">
+            <IconArrowDown size={24} />
+          </button>
+        </div>
+        <button className="p-2 border rounded" onClick={()=>moveSelectedPitch(1)} aria-label="Raise pitch">
+          <IconArrowRight size={24} />
+        </button>
+      </div>
+    )}
   </div>
 );
 
