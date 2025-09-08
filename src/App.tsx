@@ -24,6 +24,7 @@ const App:React.FC = () => {
   const [defOct,setDefOct] = useState(5);
   const [notes,setNotes] = useState<NoteEvent[]>([]);
   const [selected,setSelected] = useState<Set<string>>(new Set());
+  const [lastSelected, setLastSelected] = useState<NoteEvent | null>(null);
   const [clipboard,setClipboard] = useState<Omit<NoteEvent,'id'>[]>([]);
   const [cursorTick,setCursorTick] = useState(0);
   const cursorRef = useRef(0);
@@ -97,12 +98,29 @@ const App:React.FC = () => {
 
   // Clear
   function clearAll(){
-    setNotes([]); setSelected(new Set()); cursorRef.current = 0; setCursorTick(0); setPlayTick(0);
+    setNotes([]);
+    setSelected(new Set());
+    setLastSelected(null);
+    cursorRef.current = 0;
+    setCursorTick(0);
+    setPlayTick(0);
   }
 
   // Selection toggle
   function toggleSelect(id:string){
-    const s = new Set(selected); if(s.has(id)) s.delete(id); else s.add(id); setSelected(s);
+    const s = new Set(selected);
+    let last = lastSelected;
+    if(s.has(id)){
+      s.delete(id);
+      if(lastSelected?.id === id){
+        last = s.size ? notes.find(n => s.has(n.id)) ?? null : null;
+      }
+    } else {
+      s.add(id);
+      last = notes.find(n => n.id === id) ?? null;
+    }
+    setSelected(s);
+    setLastSelected(last);
   }
 
   // Copy/Cut/Paste/Delete
@@ -111,7 +129,11 @@ const App:React.FC = () => {
     setClipboard(items);
   }
   function cutSel(){ copySel(); delSel(); }
-  function delSel(){ setNotes(notes.filter((n: NoteEvent)=>!selected.has(n.id))); setSelected(new Set()); }
+  function delSel(){
+    setNotes(notes.filter((n: NoteEvent)=>!selected.has(n.id)));
+    setSelected(new Set());
+    setLastSelected(null);
+  }
   function pasteClip(){
     if(!clipboard.length) return;
     let t = cursorRef.current ?? 0;
@@ -279,6 +301,7 @@ const App:React.FC = () => {
           clipboardLength={clipboard.length}
           dark={dark}
           setDark={setDark}
+          lastSelected={lastSelected}
         />
 
       {/* Piano roll */}

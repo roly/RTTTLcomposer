@@ -1,5 +1,6 @@
 import React from 'react';
-import { Den, TEMPOS, DEFAULT_DENS } from '../music';
+import { Den, TEMPOS, DEFAULT_DENS, NoteEvent } from '../music';
+import { IconSun, IconMoon } from '@tabler/icons-react';
 
 const OCTAVES = [4,5,6,7];
 
@@ -23,13 +24,14 @@ interface Props {
   clipboardLength: number;
   dark: boolean;
   setDark: (v: boolean) => void;
+  lastSelected: NoteEvent | null;
 }
 
 const TopControls: React.FC<Props> = ({
   name, setName, bpm, setBpm, defDen, setDefDen, defOct, setDefOct,
   notesLength, totalTicks, lengthSec, selectedSize,
   copySel, cutSel, pasteClip, delSel, clipboardLength,
-  dark, setDark
+  dark, setDark, lastSelected
 }) => (
   <div className="flex gap-4 p-2 items-center flex-wrap text-xs">
     <label className="flex items-center gap-1">Name
@@ -54,7 +56,19 @@ const TopControls: React.FC<Props> = ({
       <div>Events: {notesLength}</div>
       <div>Total ticks: {totalTicks}</div>
       <div>Length: {lengthSec.toFixed(2)}s</div>
-      <div>Selected: {selectedSize}</div>
+      <div>
+        Selected: {selectedSize}
+        {lastSelected && (
+          <span>
+            {' '}(
+            {lastSelected.isRest ? 'rest' : `${lastSelected.note}${lastSelected.octave}`}
+            {' d='}
+            {lastSelected.durationDen}
+            {lastSelected.dotted ? '.' : ''}
+            )
+          </span>
+        )}
+      </div>
       <div className="flex gap-1 ml-2">
         <button className="border px-1" onClick={copySel}>Copy</button>
         <button className="border px-1" onClick={cutSel}>Cut</button>
@@ -64,11 +78,11 @@ const TopControls: React.FC<Props> = ({
     </div>
     <button
       className="border px-2 ml-auto"
-      onClick={()=>setDark(!dark)}
+      onClick={() => setDark(!dark)}
       aria-label="Toggle theme"
       title="Toggle theme"
     >
-      {dark ? '🌞' : '🌙'}
+      {dark ? <IconSun size={20} /> : <IconMoon size={20} />}
     </button>
   </div>
 );

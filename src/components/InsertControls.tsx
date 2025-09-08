@@ -1,5 +1,12 @@
 import React from 'react';
 import { Den, NEXT_DENS } from '../music';
+import {
+  IconPlayerSkipBack,
+  IconPlayerPlay,
+  IconPlayerPause,
+  IconPlayerSkipForward,
+  IconRepeat,
+} from '@tabler/icons-react';
 
 interface Props {
   nextLen: Den;
@@ -37,37 +44,37 @@ const InsertControls: React.FC<Props> = ({
     <button className="border px-1" onClick={clearAll}>Clear</button>
     <div className="flex items-center gap-2 ml-2">
       <button
-        className="text-2xl"
+        className="p-1"
         onClick={goToStart}
         aria-label="Go to start"
         title="Go to start"
       >
-        ⏮
+        <IconPlayerSkipBack size={24} />
       </button>
       <button
-        className="text-2xl"
+        className="p-1"
         onClick={togglePlay}
         aria-label={playing ? 'Pause' : 'Play'}
         title={playing ? 'Pause' : 'Play'}
       >
-        {playing ? '⏸' : '▶️'}
+        {playing ? <IconPlayerPause size={24} /> : <IconPlayerPlay size={24} />}
       </button>
       <button
-        className="text-2xl"
+        className="p-1"
         onClick={goToEnd}
         aria-label="Go to end"
         title="Go to end"
       >
-        ⏭
+        <IconPlayerSkipForward size={24} />
       </button>
       <button
-        className={`text-2xl px-1 rounded ${loop ? 'bg-blue-500 text-white' : ''}`}
+        className={`p-1 rounded ${loop ? 'bg-blue-500 text-white' : ''}`}
         onClick={() => setLoop(!loop)}
         aria-label="Toggle loop"
         title="Toggle loop"
         aria-pressed={loop}
       >
-        🔁
+        <IconRepeat size={24} />
       </button>
     </div>
     <label className="mt-2 md:ml-auto flex items-center gap-1 w-full md:w-auto justify-end">

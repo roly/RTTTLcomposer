@@ -110,14 +110,12 @@ const PianoRoll: React.FC<Props> = ({
                     selected.has(n.ev.id)
                       ? 'bg-yellow-400 text-gray-900 font-semibold'
                       : 'bg-gray-400/30'
-                  } text-center italic`}
+                  }`}
                   style={{
                     height: n.durTicks * pxPerTick,
                     bottom: n.startTick * pxPerTick,
                   }}
-                >
-                  pause
-                </div>
+                />
               ) : (
                 <div
                   key={n.ev.id}
