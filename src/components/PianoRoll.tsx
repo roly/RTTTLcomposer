@@ -61,7 +61,7 @@ const PianoRoll: React.FC<Props> = ({
     if (cont) {
       const maxScroll = Math.max(0, contentH - cont.clientHeight);
       const target = contentH - t * pxPerTick - cont.clientHeight / 2;
-      cont.scrollTo({ top: Math.max(0, Math.min(target, maxScroll)) });
+      cont.scrollTop = Math.max(0, Math.min(target, maxScroll));
     }
   }, [playTick, cursorTick, playing, gridHeight]);
 
