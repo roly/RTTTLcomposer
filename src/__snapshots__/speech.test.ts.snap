@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`speech to RTTTL > Hack the planet tempo 120 1`] = `"Test:d=8,o=5,b=120:4d#,16p,d,4b4,4b4,16p"`;
+
+exports[`speech to RTTTL > Hack the planet tempo 180 1`] = `"Test:d=8,o=5,b=180:4d#,16p,d,4b4,4b4,16p"`;
+
+exports[`speech to RTTTL > Hak5 WiFi Pineapple tempo 120 1`] = `"Test:d=8,o=5,b=120:4d#,16p,4e,d#,4d,b4,4b4"`;
+
+exports[`speech to RTTTL > Hak5 WiFi Pineapple tempo 180 1`] = `"Test:d=8,o=5,b=180:4d#,16p,4e,d#,4d,b4,4b4"`;
+
+exports[`speech to RTTTL > Trust your technolust tempo 120 1`] = `"Test:d=8,o=5,b=120:4b4,16p,e,4c,g#4,4f#4,16p"`;
+
+exports[`speech to RTTTL > Trust your technolust tempo 180 1`] = `"Test:d=8,o=5,b=180:4b4,16p,e,4c,g#4,4f#4,16p"`;
