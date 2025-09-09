@@ -197,19 +197,30 @@ const App:React.FC = () => {
   },[selected]);
 
   function reverseNotes(){
-    setNotes(prev => [...prev].reverse());
-    setSelected(new Set());
-    setLastSelected(null);
+    setNotes(prev => {
+      if(selected.size){
+        const sel = prev.filter(n => selected.has(n.id)).reverse();
+        return prev.map(n => selected.has(n.id) ? sel.shift()! : n);
+      }
+      return [...prev].reverse();
+    });
+    if(!selected.size){
+      setSelected(new Set());
+      setLastSelected(null);
+    }
   }
 
   function flipHorizontal(){
     setNotes(prev => prev.map(n => {
+      if(selected.size && !selected.has(n.id)) return n;
       if(n.isRest) return n;
       const ni = KEYS.length - 1 - n.keyIndex!;
       return {...n,keyIndex:ni,note:KEYS[ni].name,octave:KEYS[ni].octave};
     }));
-    setSelected(new Set());
-    setLastSelected(null);
+    if(!selected.size){
+      setSelected(new Set());
+      setLastSelected(null);
+    }
   }
 
   function squashRests(){
