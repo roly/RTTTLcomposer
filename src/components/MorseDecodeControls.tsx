@@ -9,10 +9,12 @@ function gcd(a:number,b:number){
 }
 
 function baseDot(notes:NoteEvent[], defDen:Den){
-  if(!notes.length) return ticksFromDen(defDen,false);
-  return notes
+  const def = ticksFromDen(defDen,false);
+  if(!notes.length) return def;
+  const g = notes
     .map(ev=>ticksFromDen(ev.durationDen,ev.dotted))
     .reduce((a,b)=>gcd(a,b));
+  return Math.min(def,g);
 }
 
 const MorseDecodeControls: React.FC = () => {
