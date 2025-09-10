@@ -1,7 +1,21 @@
 import React, { useState } from 'react';
 import { parseRTTTL } from '../rtttl';
-import { ticksFromDen } from '../music';
+import { ticksFromDen, Den, NoteEvent } from '../music';
 import { eventsToMorse } from '../morse';
+
+function gcd(a:number,b:number){
+  while(b){ [a,b] = [b,a%b]; }
+  return a;
+}
+
+function baseDot(notes:NoteEvent[], defDen:Den){
+  const base = ticksFromDen(defDen,false);
+  if(!notes.length) return base;
+  const g = notes
+    .map(ev=>ticksFromDen(ev.durationDen,ev.dotted))
+    .reduce((a,b)=>gcd(a,b));
+  return g<base?g:base;
+}
 
 const MorseDecodeControls: React.FC = () => {
   const [text, setText] = useState('');
@@ -11,9 +25,7 @@ const MorseDecodeControls: React.FC = () => {
   function decode(){
     try{
       const song = parseRTTTL(text, 8, 5, 120);
-      const dot = song.notes.length
-        ? Math.min(...song.notes.map(ev => ticksFromDen(ev.durationDen, ev.dotted)))
-        : ticksFromDen(song.defDen, false);
+      const dot = baseDot(song.notes, song.defDen);
       const res = eventsToMorse(song.notes, dot);
       setMorse(res.code);
       setDecoded(res.text);
