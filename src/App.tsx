@@ -7,6 +7,7 @@ import PianoRoll from "./components/PianoRoll";
 import InsertControls from "./components/InsertControls";
 import RTTTLControls from "./components/RTTTLControls";
 import MorseControls from "./components/MorseControls";
+import MorseDecodeControls from "./components/MorseDecodeControls";
 import SpeechControls from "./components/SpeechControls";
 import InterleaveControls from "./components/InterleaveControls";
 import { parseRTTTL, generateRTTTL } from "./rtttl";
@@ -40,7 +41,7 @@ const App:React.FC = () => {
   const [loop,setLoop] = useState(false);
   const [rtttl,setRtttl] = useState('Tune:d=8,o=5,b=170:');
   const skipParseRef = useRef(false);
-  const [extraTab, setExtraTab] = useState<'morse'|'speech'|'interleave'>('morse');
+  const [extraTab, setExtraTab] = useState<'morse'|'speech'|'interleave'|'decode'>('morse');
 
   // Derived
   const noteWithTiming = notes.reduce<{ev:NoteEvent;startTick:number;durTicks:number}[]>((arr: {ev:NoteEvent;startTick:number;durTicks:number}[], ev: NoteEvent)=>{
@@ -489,6 +490,10 @@ const App:React.FC = () => {
               className={`px-2 ${extraTab==='interleave' ? 'font-bold border-b-2' : ''}`}
               onClick={()=>setExtraTab('interleave')}
             >Interleave</button>
+            <button
+              className={`px-2 ${extraTab==='decode' ? 'font-bold border-b-2' : ''}`}
+              onClick={()=>setExtraTab('decode')}
+            >Morse Decode</button>
           </div>
           <div className="p-2 flex-1 overflow-auto">
             {extraTab==='morse' && (
@@ -499,6 +504,9 @@ const App:React.FC = () => {
             )}
             {extraTab==='interleave' && (
               <InterleaveControls onInterleave={interleaveRTTTL} />
+            )}
+            {extraTab==='decode' && (
+              <MorseDecodeControls />
             )}
           </div>
         </div>
