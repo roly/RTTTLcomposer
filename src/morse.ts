@@ -96,7 +96,7 @@ const REV_MORSE: Record<string,string> = Object.fromEntries(
   Object.entries(MORSE).map(([k,v]) => [v,k])
 );
 
-export function eventsToMorse(events: NoteEvent[], dotTicks: number): { code: string; text: string } {
+export function eventsToMorse(events: NoteEvent[], dotTicks: number, dashTicks: number): { code: string; text: string } {
   const wordsCode: string[][] = [[]];
   const wordsText: string[][] = [[]];
   let currentSymbols = '';
@@ -108,10 +108,13 @@ export function eventsToMorse(events: NoteEvent[], dotTicks: number): { code: st
     currentSymbols='';
   }
   events.forEach(ev => {
-    const units = Math.round(ticksFromDen(ev.durationDen, ev.dotted) / dotTicks);
+    const t = ticksFromDen(ev.durationDen, ev.dotted);
     if (!ev.isRest) {
-      if (units <= 2) currentSymbols += '.'; else currentSymbols += '-';
+      const diffDot = Math.abs(t - dotTicks);
+      const diffDash = Math.abs(t - dashTicks);
+      if (diffDot <= diffDash) currentSymbols += '.'; else currentSymbols += '-';
     } else {
+      const units = Math.round(t / dotTicks);
       if (units >= 7) {
         flushLetter();
         wordsCode.push([]);
