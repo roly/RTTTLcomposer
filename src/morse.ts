@@ -1,4 +1,4 @@
-import { Den, NoteEvent, KEYS } from './music';
+import { Den, NoteEvent, KEYS, ticksFromDen } from './music';
 
 export const MORSE: Record<string,string> = {
   'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....','I':'..','J':'.---','K':'-.-','L':'.-..','M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.','S':'...','T':'-','U':'..-','V':'...-','W':'.--','X':'-..-','Y':'-.--','Z':'--..',
@@ -90,5 +90,42 @@ export function morseToEvents(text: string, opts: MorseOptions): { events: NoteE
     }
   }
   return { events, nextIndex: idx };
+}
+
+const REV_MORSE: Record<string,string> = Object.fromEntries(
+  Object.entries(MORSE).map(([k,v]) => [v,k])
+);
+
+export function eventsToMorse(events: NoteEvent[], dotTicks: number): { code: string; text: string } {
+  const wordsCode: string[][] = [[]];
+  const wordsText: string[][] = [[]];
+  let currentSymbols = '';
+  function flushLetter(){
+    if (!currentSymbols) return;
+    const letter = REV_MORSE[currentSymbols] || '?';
+    wordsCode[wordsCode.length-1].push(currentSymbols);
+    wordsText[wordsText.length-1].push(letter);
+    currentSymbols='';
+  }
+  events.forEach(ev => {
+    const units = Math.round(ticksFromDen(ev.durationDen, ev.dotted) / dotTicks);
+    if (!ev.isRest) {
+      if (units <= 2) currentSymbols += '.'; else currentSymbols += '-';
+    } else {
+      if (units >= 7) {
+        flushLetter();
+        wordsCode.push([]);
+        wordsText.push([]);
+      } else if (units >= 3) {
+        flushLetter();
+      } else {
+        // symbol gap, do nothing
+      }
+    }
+  });
+  flushLetter();
+  const code = wordsCode.map(w => w.join(' ')).join(' / ');
+  const text = wordsText.map(w => w.join('')).join(' ');
+  return { code, text };
 }
 
