@@ -11,7 +11,9 @@ const MorseDecodeControls: React.FC = () => {
   function decode(){
     try{
       const song = parseRTTTL(text, 8, 5, 120);
-      const dot = ticksFromDen(song.defDen, false);
+      const dot = song.notes.length
+        ? Math.min(...song.notes.map(ev => ticksFromDen(ev.durationDen, ev.dotted)))
+        : ticksFromDen(song.defDen, false);
       const res = eventsToMorse(song.notes, dot);
       setMorse(res.code);
       setDecoded(res.text);
