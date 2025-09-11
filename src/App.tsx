@@ -108,7 +108,14 @@ const App:React.FC = () => {
   }
 
   useEffect(()=>{
-    if(!realtime){
+    if(!keyboardMode){
+      setRealtime(false);
+      pressedKeyRef.current = null;
+    }
+  },[keyboardMode]);
+
+  useEffect(()=>{
+    if(!realtime || !keyboardMode){
       pressedKeyRef.current = null;
       return;
     }
@@ -123,7 +130,7 @@ const App:React.FC = () => {
       }
     }, intervalMs);
     return ()=>clearInterval(id);
-  },[realtime,nextLen,nextDot,tickSec]);
+  },[realtime,keyboardMode,nextLen,nextDot,tickSec]);
 
   // Clear
   function clearAll(){
