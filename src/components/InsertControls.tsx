@@ -7,6 +7,7 @@ import {
   IconPlayerSkipForward,
   IconRepeat,
   IconKeyboard,
+  IconPlayerRecord,
   IconArrowLeft,
   IconArrowRight,
   IconArrowUp,
@@ -26,6 +27,8 @@ interface Props {
   playing: boolean;
   keyboardMode: boolean;
   setKeyboardMode: (v: boolean) => void;
+  realtime: boolean;
+  setRealtime: (v: boolean) => void;
   selectedSize: number;
   moveSelectedPitch: (d:number) => void;
   adjustSelectedDuration: (d:number) => void;
@@ -35,6 +38,7 @@ const InsertControls: React.FC<Props> = ({
   nextLen, setNextLen, nextDot, setNextDot,
   goToStart, togglePlay, goToEnd,
   loop, setLoop, playing, keyboardMode, setKeyboardMode,
+  realtime, setRealtime,
   selectedSize, moveSelectedPitch, adjustSelectedDuration
 }) => (
   <div className="flex flex-wrap gap-2 p-2 items-center text-xs border-b">
@@ -82,11 +86,24 @@ const InsertControls: React.FC<Props> = ({
         <IconRepeat size={24} />
       </button>
     </div>
-    <label className="mt-2 md:ml-auto flex items-center gap-1 w-full md:w-auto justify-end">
-      <input type="checkbox" checked={keyboardMode} onChange={e=>setKeyboardMode(!!e.target.checked)} />
-      <IconKeyboard size={20} />
-      <span className="italic">QWERTYUIOP[] = C5..B5, Space=pause</span>
-    </label>
+    <div className="mt-2 md:ml-auto flex items-center gap-2 w-full md:w-auto justify-end">
+      <label className="flex items-center gap-1">
+        <input type="checkbox" checked={keyboardMode} onChange={e=>setKeyboardMode(!!e.target.checked)} />
+        <IconKeyboard size={20} />
+        <span className="italic">QWERTYUIOP[] = C5..B5, Space=pause</span>
+      </label>
+      {keyboardMode && (
+        <button
+          className={`p-1 rounded ${realtime ? 'bg-red-500 text-white' : ''}`}
+          onClick={() => setRealtime(!realtime)}
+          aria-pressed={realtime}
+          aria-label="Toggle realtime recording"
+          title="Toggle realtime recording"
+        >
+          <IconPlayerRecord size={20} />
+        </button>
+      )}
+    </div>
     {selectedSize > 0 && (
       <div className="flex w-full justify-center gap-2 mt-2 md:hidden">
         <button className="p-2 border rounded" onClick={()=>moveSelectedPitch(-1)} aria-label="Lower pitch">
