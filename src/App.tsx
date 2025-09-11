@@ -32,10 +32,12 @@ const App:React.FC = () => {
   const [cursorTick,setCursorTick] = useState(0);
   const cursorRef = useRef(0);
   useEffect(()=>{ cursorRef.current = cursorTick; },[cursorTick]);
+  const pressedKeyRef = useRef<KeyDef | null>(null);
   const updateCursor = (tick:number) => { cursorRef.current = tick; setCursorTick(tick); };
   const [nextLen,setNextLen] = useState<Den>(8);
   const [nextDot,setNextDot] = useState(false);
   const [keyboardMode,setKeyboardMode] = useState(false);
+  const [realtime,setRealtime] = useState(false);
   const [playing,setPlaying] = useState(false);
   const [playTick,setPlayTick] = useState(0);
   const [loop,setLoop] = useState(false);
@@ -91,14 +93,44 @@ const App:React.FC = () => {
 
   // Keyboard click
   function onKeyPress(k:KeyDef){
-    insertEvent({id:crypto.randomUUID(),isRest:false,keyIndex:k.index,note:k.name,octave:k.octave,durationDen:nextLen,dotted:nextDot});
-    playTone(k.midi,0.2);
+    if(realtime){
+      playTone(k.midi,0.2);
+      pressedKeyRef.current = k;
+    } else {
+      insertEvent({id:crypto.randomUUID(),isRest:false,keyIndex:k.index,note:k.name,octave:k.octave,durationDen:nextLen,dotted:nextDot});
+      playTone(k.midi,0.2);
+    }
   }
 
   // Pause insert
   function insertRest(){
     insertEvent({id:crypto.randomUUID(),isRest:true,durationDen:nextLen,dotted:nextDot});
   }
+
+  useEffect(()=>{
+    if(!keyboardMode){
+      setRealtime(false);
+      pressedKeyRef.current = null;
+    }
+  },[keyboardMode]);
+
+  useEffect(()=>{
+    if(!realtime || !keyboardMode){
+      pressedKeyRef.current = null;
+      return;
+    }
+    const intervalMs = ticksFromDen(nextLen,nextDot) * tickSec * 1000;
+    const id = window.setInterval(()=>{
+      const k = pressedKeyRef.current;
+      if(k){
+        insertEvent({id:crypto.randomUUID(),isRest:false,keyIndex:k.index,note:k.name,octave:k.octave,durationDen:nextLen,dotted:nextDot});
+        pressedKeyRef.current = null;
+      }else{
+        insertRest();
+      }
+    }, intervalMs);
+    return ()=>clearInterval(id);
+  },[realtime,keyboardMode,nextLen,nextDot,tickSec]);
 
   // Clear
   function clearAll(){
@@ -277,7 +309,14 @@ const App:React.FC = () => {
   useEffect(()=>{
     function onKey(e: KeyboardEvent){
       if(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if(e.key===' ' && keyboardMode){ e.preventDefault(); insertRest(); }
+      if(e.key===' ' && keyboardMode){
+        e.preventDefault();
+        if(realtime){
+          pressedKeyRef.current = null;
+        }else{
+          insertRest();
+        }
+      }
       if(keyboardMode){
         const map = 'qwertyuiop[]';
         const idx = map.indexOf(e.key.toLowerCase());
@@ -310,7 +349,7 @@ const App:React.FC = () => {
     }
     window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);
-  },[selected,notes,cursorTick,nextLen,nextDot,keyboardMode,clipboard,noteWithTiming,totalTicks,selectAll,deselectAll,moveSelectedPitch,adjustSelectedDuration]);
+  },[selected,notes,cursorTick,nextLen,nextDot,keyboardMode,realtime,clipboard,noteWithTiming,totalTicks,selectAll,deselectAll,moveSelectedPitch,adjustSelectedDuration]);
 
   // Playback
   const timeoutsRef = useRef<number[]>([]);
@@ -465,6 +504,8 @@ const App:React.FC = () => {
         playing={playing}
         keyboardMode={keyboardMode}
         setKeyboardMode={setKeyboardMode}
+        realtime={realtime}
+        setRealtime={setRealtime}
         selectedSize={selected.size}
         moveSelectedPitch={moveSelectedPitch}
         adjustSelectedDuration={adjustSelectedDuration}
