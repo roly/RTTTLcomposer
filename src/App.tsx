@@ -555,7 +555,7 @@ const App:React.FC = () => {
               <MorseDecodeControls />
             )}
             {extraTab==='phone' && (
-              <PhoneControls onAdd={(events)=>events.forEach(insertEvent)} />
+              <PhoneControls onAdd={(events)=>events.forEach(insertEvent)} setBpm={setBpm} />
             )}
           </div>
         </div>

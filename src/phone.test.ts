@@ -4,6 +4,8 @@ import {
   blueBoxToEvents,
   redBoxCoinToEvents,
   tone2600ToEvents,
+  modemNoiseToEvents,
+  MODEM_TEMPO,
 } from './phone';
 
 describe('phone tone helpers', () => {
@@ -37,6 +39,13 @@ describe('phone tone helpers', () => {
     const events = tone2600ToEvents();
     expect(events).toHaveLength(1);
     expect(events[0].isRest).toBe(false);
+  });
+
+  it('generates modem noise events', () => {
+    const events = modemNoiseToEvents();
+    const expected = Math.round((MODEM_TEMPO * 5) / 7.5);
+    expect(events.length).toBeGreaterThan(expected - 5);
+    expect(events.every(e => !e.isRest)).toBe(true);
   });
 });
 

@@ -37,8 +37,9 @@ export const BLUE_BOX_FREQS: Record<string, [number, number]> = {
   'ST': [1500, 1700],
 };
 
-const RED_BOX_PAIR: [number, number] = [1700, 2200];
-const TONE_2600 = 2600;
+export const RED_BOX_PAIR: [number, number] = [1700, 2200];
+export const TONE_2600 = 2600;
+export const MODEM_TEMPO = 800;
 
 function midiToFreq(midi: number): number {
   return 440 * Math.pow(2, (midi - 69) / 12);
@@ -129,6 +130,24 @@ export function tone2600ToEvents(toneDen: Den = 8): NoteEvent[] {
       durationDen: toneDen,
     },
   ];
+}
+
+export function modemNoiseToEvents(seconds = 5, { toneDen = 32 }: ToneOptions = {}): NoteEvent[] {
+  const noteDurSec = 60 / MODEM_TEMPO * 4 / toneDen;
+  const total = Math.round(seconds / noteDurSec);
+  const events: NoteEvent[] = [];
+  for (let i = 0; i < total; i++) {
+    const key = KEYS[Math.floor(Math.random() * KEYS.length)];
+    events.push({
+      id: crypto.randomUUID(),
+      isRest: false,
+      keyIndex: key.index,
+      note: key.name,
+      octave: key.octave,
+      durationDen: toneDen,
+    });
+  }
+  return events;
 }
 
 // Helpers to directly create RTTTL strings

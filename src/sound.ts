@@ -30,3 +30,21 @@ export function playTone(midi: number, dur = 0.15) {
   gain.gain.linearRampToValueAtTime(0.0001, now + dur + 0.01);
   osc.stop(now + dur + 0.02);
 }
+
+export function playFreqs(freqs: number[], dur = 0.15) {
+  const ctx = getAudioContext();
+  const gain = ctx.createGain();
+  gain.connect(ctx.destination);
+  const now = ctx.currentTime;
+  freqs.forEach(f => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    osc.connect(gain);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  });
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.setValueAtTime(0.2, now + dur);
+  gain.gain.linearRampToValueAtTime(0.0001, now + dur + 0.01);
+}
