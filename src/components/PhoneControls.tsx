@@ -1,12 +1,25 @@
 import React from 'react';
 import { Den, NoteEvent } from '../music';
-import { dtmfToEvents, blueBoxToEvents, redBoxCoinToEvents, tone2600ToEvents } from '../phone';
+import {
+  dtmfToEvents,
+  blueBoxToEvents,
+  redBoxCoinToEvents,
+  tone2600ToEvents,
+  modemNoiseToEvents,
+  DTMF_FREQS,
+  BLUE_BOX_FREQS,
+  RED_BOX_PAIR,
+  TONE_2600,
+  MODEM_TEMPO,
+} from '../phone';
+import { playFreqs } from '../sound';
 
 interface Props {
   onAdd: (events: NoteEvent[]) => void;
+  setBpm: (tempo: number) => void;
 }
 
-const PhoneControls: React.FC<Props> = ({ onAdd }) => {
+const PhoneControls: React.FC<Props> = ({ onAdd, setBpm }) => {
   const toneDen: Den = 32;
   const gapDen: Den = 16;
 
@@ -15,10 +28,28 @@ const PhoneControls: React.FC<Props> = ({ onAdd }) => {
     onAdd(events);
   }
 
-  const handleDtmf = (k: string) => addEvents(dtmfToEvents(k, { toneDen }));
-  const handleBlue = (k: string) => addEvents(blueBoxToEvents(k, { toneDen }));
-  const handleRed = (v: 5 | 10 | 25) => addEvents(redBoxCoinToEvents(v, { toneDen, gapDen }));
-  const handle2600 = () => addEvents(tone2600ToEvents(8));
+  const handleDtmf = (k: string) => {
+    const pair = DTMF_FREQS[k];
+    if (pair) playFreqs(pair);
+    addEvents(dtmfToEvents(k, { toneDen }));
+  };
+  const handleBlue = (k: string) => {
+    const pair = BLUE_BOX_FREQS[k];
+    if (pair) playFreqs(pair);
+    addEvents(blueBoxToEvents(k, { toneDen }));
+  };
+  const handleRed = (v: 5 | 10 | 25) => {
+    playFreqs(RED_BOX_PAIR);
+    addEvents(redBoxCoinToEvents(v, { toneDen, gapDen }));
+  };
+  const handle2600 = () => {
+    playFreqs([TONE_2600]);
+    addEvents(tone2600ToEvents(8));
+  };
+  const handleModem = () => {
+    setBpm(MODEM_TEMPO);
+    addEvents(modemNoiseToEvents(5, { toneDen }));
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -46,6 +77,10 @@ const PhoneControls: React.FC<Props> = ({ onAdd }) => {
           <button className="border p-2" onClick={() => handleRed(25)}>25¢</button>
           <button className="border p-2" onClick={handle2600}>2600Hz</button>
         </div>
+      </div>
+      <div>
+        <div className="font-bold mb-1">Modem</div>
+        <button className="border p-2" onClick={handleModem}>AOL Noise</button>
       </div>
     </div>
   );
