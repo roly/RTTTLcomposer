@@ -9,6 +9,8 @@ const MorseDecodeControls: React.FC = () => {
   const [decoded, setDecoded] = useState('');
   const [dotLen, setDotLen] = useState<Den>(8);
   const [dashLen, setDashLen] = useState<Den>(4);
+  const [dotDotted, setDotDotted] = useState(false);
+  const [dashDotted, setDashDotted] = useState(false);
 
   function guessLengths(notes: NoteEvent[]): { dot: Den; dash: Den } {
     const counts: Record<Den, number> = { 1: 0, 2: 0, 4: 0, 8: 0, 16: 0, 32: 0 };
@@ -24,11 +26,13 @@ const MorseDecodeControls: React.FC = () => {
     return { dot, dash };
   }
 
-  function decode(opts?: { dot?: Den; dash?: Den; guess?: boolean }) {
+  function decode(opts?: { dot?: Den; dash?: Den; dotDot?: boolean; dashDot?: boolean; guess?: boolean }) {
     try {
       const song = parseRTTTL(text, 8, 5, 120);
       let d = opts?.dot ?? dotLen;
       let da = opts?.dash ?? dashLen;
+      let dd = opts?.dotDot ?? dotDotted;
+      let dda = opts?.dashDot ?? dashDotted;
       if (opts?.guess) {
         const g = guessLengths(song.notes);
         d = g.dot;
@@ -36,7 +40,7 @@ const MorseDecodeControls: React.FC = () => {
         setDotLen(d);
         setDashLen(da);
       }
-      const res = eventsToMorse(song.notes, ticksFromDen(d, false), ticksFromDen(da, false));
+      const res = eventsToMorse(song.notes, ticksFromDen(d, dd), ticksFromDen(da, dda));
       setMorse(res.code);
       setDecoded(res.text);
     } catch {
@@ -50,7 +54,7 @@ const MorseDecodeControls: React.FC = () => {
       <div className="font-bold">Morse Decoder</div>
       <textarea className="border p-1 mt-1 flex-1" value={text} onChange={e=>setText(e.target.value)} placeholder="RTTTL string" />
       <div className="flex gap-2 mt-2 items-center text-sm">
-        <label>
+        <label className="flex items-center">
           Dot:
           <select className="border ml-1" value={dotLen} onChange={e=>{
             const val = parseInt(e.target.value) as Den;
@@ -61,8 +65,15 @@ const MorseDecodeControls: React.FC = () => {
               <option key={d} value={d}>{d}</option>
             ))}
           </select>
+          <span className="ml-1 flex items-center">
+            <input type="checkbox" className="mr-1" checked={dotDotted} onChange={e=>{
+              setDotDotted(e.target.checked);
+              decode({ dotDot: e.target.checked });
+            }} />
+            <span className="text-xs">dotted</span>
+          </span>
         </label>
-        <label>
+        <label className="flex items-center">
           Dash:
           <select className="border ml-1" value={dashLen} onChange={e=>{
             const val = parseInt(e.target.value) as Den;
@@ -73,6 +84,13 @@ const MorseDecodeControls: React.FC = () => {
               <option key={d} value={d}>{d}</option>
             ))}
           </select>
+          <span className="ml-1 flex items-center">
+            <input type="checkbox" className="mr-1" checked={dashDotted} onChange={e=>{
+              setDashDotted(e.target.checked);
+              decode({ dashDot: e.target.checked });
+            }} />
+            <span className="text-xs">dotted</span>
+          </span>
         </label>
         <button className="border px-2 ml-auto" onClick={()=>decode({guess:true})}>Decode</button>
       </div>
